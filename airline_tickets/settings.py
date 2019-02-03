@@ -24,15 +24,12 @@ else:
 META_DB_URI = os.environ.get('META_DB_URI') or prefix + os.path.join(basedir, 'data-dev.db')
 
 CRAWLER_DAYS = 3
-SPLASH_URL = 'http://10.42.11.227:8050'
 
 SPIDER_MODULES = ['airline_tickets.spiders']
 NEWSPIDER_MODULE = 'airline_tickets.spiders'
 
-
-PYPPETEER_ARGS = {
-    'timeout': 8
-}
+SELENIUM_TIMEOUT = 10
+SELENIUM_EXECUTABLE_PATH = r'D:\chromedriver_win32\chromedriver'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 # USER_AGENT = 'airline_tickets (+http://www.yourdomain.com)'
@@ -72,7 +69,7 @@ ROBOTSTXT_OBEY = False
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-    'airline_tickets.middlewares.PyppeteerMiddleware': 543,
+    'airline_tickets.middlewares.SeleniumMiddleware': 543,
 }
 
 # Enable or disable extensions
