@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Date
 from sqlalchemy.orm import sessionmaker, relationship, backref
 from sqlalchemy import create_engine
 from datetime import datetime
@@ -40,9 +40,24 @@ class Airport(Base):
         return "<Airport(%s,%s)>" % (self.code, self.name)
 
 
+class PriceInfo(Base):
+    __tablename__ = 'price_info'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    dep_airport_id = Column(Integer, ForeignKey('airports.id'))
+    arv_airport_id = Column(Integer, ForeignKey('airports.id'))
+    dep_date = Column(Date)
+    flt_no = Column(String(16))
+    airplane_type = Column(String(16))
+    flt_tm = Column(String(32))
+    luxury_price = Column(String(16))
+    economy_price = Column(String(16))
+    member_price = Column(String(16))
+    create_date = Column(DateTime, default=datetime.now)
+
+
 class Option(Base):
     __tablename__ = 'options'
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(40), unique=True)
     value = Column(Integer)
 

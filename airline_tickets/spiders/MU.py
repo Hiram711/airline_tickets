@@ -9,7 +9,7 @@ import re
 
 class MuSpider(scrapy.Spider):
     name = 'MU'
-    allowed_domains = ['http://www.ceair.com/']
+    allowed_domains = ['ceair.com']
 
     def __init__(self):
         super(MuSpider, self).__init__()
@@ -27,7 +27,9 @@ class MuSpider(scrapy.Spider):
                 date_str = (now + timedelta(days=i)).strftime('%Y%m%d')[2:]
                 airline_url = 'http://www.ceair.com/booking/{0}-{1}-{2}_CNY.html'.format(dep_city, arv_city,
                                                                                          date_str)
-                yield scrapy.Request(airline_url, callback=self.parse, dont_filter=True)
+                yield scrapy.Request(airline_url, callback=self.parse, dont_filter=True,
+                                     meta={'dep_id': segment.dep_airport.id, 'arv_id': segment.arv_airport.id,
+                                           'dep_date': (now + timedelta(days=i)).date()})
 
     def parse(self, response):
         soup = BeautifulSoup(response.text, 'html5lib')
@@ -42,7 +44,9 @@ class MuSpider(scrapy.Spider):
             item['airplane_type'] = \
                 flt.select_one('.body .flight-details ul.detail-info li .d-4 .popup.airplane').attrs[
                     'acfamily']
-            self.logger.debug('From url %s get price item :%s' % (response.url, item))
+            item['dep_id'] = response.request.meta.get('dep_id')
+            item['arv_id'] = response.request.meta.get('arv_id')
+            item['dep_date'] = response.request.meta.get('dep_date')
             yield item
 
     def closed(self, reason):

@@ -15,3 +15,6 @@ class TicketsItemMU(Item):
     luxury_price = Field()
     economy_price = Field()
     member_price = Field()
+    dep_date = Field()
+    dep_id = Field()
+    arv_id = Field()

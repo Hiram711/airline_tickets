@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
 
 
-from selenium import webdriver
-
-from selenium.common.exceptions import TimeoutException
-
-from selenium.webdriver.common.by import By
-
-from selenium.webdriver.support.ui import WebDriverWait
-
-from selenium.webdriver.support import expected_conditions as EC
+from logging import getLogger
 
 from scrapy.http import HtmlResponse
-
-from logging import getLogger
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.options import Options
 
 
 class SeleniumMiddleware:
@@ -24,7 +20,14 @@ class SeleniumMiddleware:
 
         self.timeout = timeout
 
-        self.browser = webdriver.Chrome(executable_path=executable_path)
+        self.options = Options()
+
+        self.options.headless = True
+
+        # if proxy is not None:
+        #     self.options.add_argument('--proxy-server=%s' % proxy)
+
+        self.browser = webdriver.Chrome(chrome_options=self.options, executable_path=executable_path)
 
         self.browser.set_page_load_timeout(self.timeout)
 
