@@ -31,6 +31,9 @@ NEWSPIDER_MODULE = 'airline_tickets.spiders'
 SELENIUM_TIMEOUT = 10
 SELENIUM_EXECUTABLE_PATH = r'D:\chromedriver_win32\chromedriver'
 
+# Enable this option to use proxy server
+# PROXY_URL='http://127.0.0.1:5000'
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 # USER_AGENT = 'airline_tickets (+http://www.yourdomain.com)'
 
@@ -69,7 +72,9 @@ ROBOTSTXT_OBEY = False
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-    'airline_tickets.middlewares.SeleniumMiddleware': 543,
+    'airline_tickets.middlewares.RandomUserAgentMiddleware': 553,
+    'airline_tickets.middlewares.ProxyMiddleware': 554,
+    'airline_tickets.middlewares.SeleniumMiddleware': 555,
 }
 
 # Enable or disable extensions
@@ -80,9 +85,9 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-    'airline_tickets.pipelines.AirlineTicketsPipeline': 300,
-}
+# ITEM_PIPELINES = {
+#     'airline_tickets.pipelines.AirlineTicketsPipeline': 300,
+# }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html

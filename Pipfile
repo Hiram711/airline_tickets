@@ -6,7 +6,12 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-scrapy = {index = "https://pypi.tuna.tsinghua.edu.cn/simple/",version = "*"}
+requests = "*"
+selenium = "*"
+pypiwin32 = "*"
+bs4 = "*"
+html5lib = "*"
+sqlalchemy = "*"
 
 [requires]
 python_version = "3.6"

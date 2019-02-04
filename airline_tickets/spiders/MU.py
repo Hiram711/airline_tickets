@@ -10,6 +10,9 @@ import re
 class MuSpider(scrapy.Spider):
     name = 'MU'
     allowed_domains = ['ceair.com']
+    custom_settings = {
+        'ITEM_PIPELINES': {'airline_tickets.pipelines.AirlineTicketsPipeline': 300}
+    }
 
     def __init__(self):
         super(MuSpider, self).__init__()
