@@ -22,6 +22,8 @@ if WIN:
 else:
     prefix = 'sqlite:////'
 META_DB_URI = os.environ.get('META_DB_URI') or prefix + os.path.join(basedir, 'data-dev.db')
+MONGO_URI = 'mongodb://root:root@127.0.0.1:37017'
+MONGO_DB = 'airline_tickets'
 
 CRAWLER_DAYS = 3
 

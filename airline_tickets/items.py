@@ -9,6 +9,8 @@ from scrapy import Item, Field
 
 
 class TicketsItemMU(Item):
+    collection = 'tickets'
+    company = Field()
     flt_no = Field()
     airplane_type = Field()
     flt_tm = Field()

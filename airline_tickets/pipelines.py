@@ -6,9 +6,10 @@
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 from airline_tickets.models import DBSession, PriceInfo
+from pymongo import MongoClient
 
 
-class AirlineTicketsPipeline(object):
+class AirlineTicketsPipeline:
 
     def open_spider(self, spider):
         self.session = DBSession()
@@ -25,3 +26,24 @@ class AirlineTicketsPipeline(object):
 
     def close_spider(self, spider):
         self.session.close()
+
+
+class MongoPipeline:
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(mongo_uri=crawler.settings.get('MONGO_URI'), mongo_db=crawler.settings.get('MONGO_DB'))
+
+    def __init__(self, mongo_uri, mongo_db):
+        self.mongo_uri = mongo_uri
+        self.mongo_db = mongo_db
+
+    def open_spider(self, spider):
+        self.conn = MongoClient(self.mongo_uri)
+        self.db = self.conn[self.mongo_db]
+
+    def close_spider(self, spider):
+        self.conn.close()
+
+    def process_item(self, item, spider):
+        self.db[item.collection].insert(dict(item))
+        return item

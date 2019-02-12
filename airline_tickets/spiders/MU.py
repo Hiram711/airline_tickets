@@ -11,7 +11,10 @@ class MuSpider(scrapy.Spider):
     name = 'MU'
     allowed_domains = ['ceair.com']
     custom_settings = {
-        'ITEM_PIPELINES': {'airline_tickets.pipelines.AirlineTicketsPipeline': 300}
+        'ITEM_PIPELINES': {
+            # 'airline_tickets.pipelines.AirlineTicketsPipeline': 300
+            'airline_tickets.pipelines.MongoPipeline': 300
+        }
     }
 
     def __init__(self):
@@ -32,13 +35,14 @@ class MuSpider(scrapy.Spider):
                                                                                          date_str)
                 yield scrapy.Request(airline_url, callback=self.parse, dont_filter=True,
                                      meta={'dep_id': segment.dep_airport.id, 'arv_id': segment.arv_airport.id,
-                                           'dep_date': (now + timedelta(days=i)).date()})
+                                           'dep_date': (now + timedelta(days=i)).strftime('%Y%m%d')})
 
     def parse(self, response):
         soup = BeautifulSoup(response.text, 'html5lib')
         l_flt = soup.find_all('article', class_='flight')
         for flt in l_flt:
             item = TicketsItemMU()
+            item['company'] = 'MU'
             item['flt_no'] = re.findall(r'[A-Z]{2}[0-9]+', flt.select_one('.summary .title').get_text())[0]
             item['flt_tm'] = flt.select_one('.summary').dfn.get_text()
             item['luxury_price'] = flt.select_one('.detail .head.cols-3 .luxury').get_text()
