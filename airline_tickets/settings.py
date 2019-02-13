@@ -22,8 +22,10 @@ if WIN:
 else:
     prefix = 'sqlite:////'
 META_DB_URI = os.environ.get('META_DB_URI') or prefix + os.path.join(basedir, 'data-dev.db')
-MONGO_URI = 'mongodb://root:root@127.0.0.1:37017'
-MONGO_DB = 'airline_tickets'
+
+# if using MongoPipeline then decomment this block
+# MONGO_URI = 'mongodb://127.0.0.1:27017'
+# MONGO_DB = 'airline_tickets'
 
 CRAWLER_DAYS = 3
 
@@ -35,9 +37,6 @@ SELENIUM_EXECUTABLE_PATH = r'D:\chromedriver_win32\chromedriver'
 
 # Enable this option to use proxy server
 # PROXY_URL='http://127.0.0.1:5000'
-
-# Crawl responsibly by identifying yourself (and your website) on the user-agent
-# USER_AGENT = 'airline_tickets (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -87,9 +86,10 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-# ITEM_PIPELINES = {
-#     'airline_tickets.pipelines.AirlineTicketsPipeline': 300,
-# }
+ITEM_PIPELINES = {
+    'airline_tickets.pipelines.SqlAlchemyPipeline': 300,
+    # 'airline_tickets.pipelines.MongoPipeline': 301
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html

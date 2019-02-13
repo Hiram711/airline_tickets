@@ -2,7 +2,7 @@
 import scrapy
 from airline_tickets.models import DBSession, Segment, Option
 from datetime import datetime, timedelta
-from airline_tickets.items import TicketsItemMU
+from airline_tickets.items import TicketItem
 from bs4 import BeautifulSoup
 import re
 
@@ -10,12 +10,13 @@ import re
 class MuSpider(scrapy.Spider):
     name = 'MU'
     allowed_domains = ['ceair.com']
-    custom_settings = {
-        'ITEM_PIPELINES': {
-            # 'airline_tickets.pipelines.AirlineTicketsPipeline': 300
-            'airline_tickets.pipelines.MongoPipeline': 300
-        }
-    }
+
+    # custom_settings = {
+    #     'ITEM_PIPELINES': {
+    #         'airline_tickets.pipelines.SqlAlchemyPipeline': 300,
+    #         'airline_tickets.pipelines.MongoPipeline': 301
+    #     }
+    # }
 
     def __init__(self):
         super(MuSpider, self).__init__()
@@ -41,7 +42,7 @@ class MuSpider(scrapy.Spider):
         soup = BeautifulSoup(response.text, 'html5lib')
         l_flt = soup.find_all('article', class_='flight')
         for flt in l_flt:
-            item = TicketsItemMU()
+            item = TicketItem()
             item['company'] = 'MU'
             item['flt_no'] = re.findall(r'[A-Z]{2}[0-9]+', flt.select_one('.summary .title').get_text())[0]
             item['flt_tm'] = flt.select_one('.summary').dfn.get_text()

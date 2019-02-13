@@ -5,20 +5,24 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
+from datetime import datetime
+
 from airline_tickets.models import DBSession, PriceInfo
 from pymongo import MongoClient
 
 
-class AirlineTicketsPipeline:
+class SqlAlchemyPipeline:
 
     def open_spider(self, spider):
         self.session = DBSession()
 
     def process_item(self, item, spider):
-        p = PriceInfo(dep_airport_id=item['dep_id'], arv_airport_id=item['arv_id'], dep_date=item['dep_date'],
-                      flt_no=item['flt_no'], airplane_type=item['airplane_type'], flt_tm=item['flt_tm'],
-                      luxury_price=item['luxury_price'], economy_price=item['economy_price'],
-                      member_price=item['member_price'])
+        item = dict(item)  # by this way we can avoid the error that some items don't have some specific keys
+        p = PriceInfo(dep_airport_id=item.get('dep_id'), arv_airport_id=item.get('arv_id'),
+                      dep_date=datetime.strptime(item.get('dep_date'), '%Y%m%d').date(),
+                      flt_no=item.get('flt_no'), airplane_type=item.get('airplane_type'), flt_tm=item.get('flt_tm'),
+                      luxury_price=item.get('luxury_price'), economy_price=item.get('economy_price'),
+                      member_price=item.get('member_price'))
         self.session.add(p)
         self.session.commit()
 

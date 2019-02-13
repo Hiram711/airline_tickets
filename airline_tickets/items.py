@@ -8,8 +8,8 @@
 from scrapy import Item, Field
 
 
-class TicketsItemMU(Item):
-    collection = 'tickets'
+class TicketItem(Item):
+    collection = 'tickets'  # this attribute is used for mongodb
     company = Field()
     flt_no = Field()
     airplane_type = Field()
