@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Date
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Date, Numeric
 from sqlalchemy.orm import sessionmaker, relationship, backref
 from sqlalchemy import create_engine
 from datetime import datetime
@@ -43,16 +43,50 @@ class Airport(Base):
 class PriceInfo(Base):
     __tablename__ = 'price_info'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    dep_airport_id = Column(Integer, ForeignKey('airports.id'))
-    arv_airport_id = Column(Integer, ForeignKey('airports.id'))
+    company_id = Column(Integer, ForeignKey('companies.id'), nullable=False)
+    dep_airport_id = Column(Integer, ForeignKey('airports.id'), nullable=False)
+    arv_airport_id = Column(Integer, ForeignKey('airports.id'), nullable=False)
     dep_date = Column(Date)
     flt_no = Column(String(16))
     airplane_type = Column(String(16))
-    flt_tm = Column(String(32))
-    luxury_price = Column(String(16))
-    economy_price = Column(String(16))
-    member_price = Column(String(16))
-    create_date = Column(DateTime, default=datetime.now)
+    dep_time = Column(String(16))
+    arv_time = Column(String(16))
+    flt_time = Column(String(32))
+    is_direct = Column(Boolean, default=True)
+    transfer_city = Column(String(32))
+    is_shared = Column(Boolean, default=False)
+    share_company = Column(String(16))
+    share_flt_no = Column(String(16))
+    price_type1 = Column(String(32))
+    price_type2 = Column(String(32))
+    discount = Column(String(16))
+    price = Column(Numeric(5, 2))
+    create_date = Column(DateTime, nullable=False)
+
+
+class Company(Base):
+    __tablename__ = 'companies'
+    id = Column(Integer, primary_key=True)
+    company_name = Column(String(40), index=True, unique=True)
+    prefix = Column(String(10), index=True, unique=True)
+    create_time = Column(DateTime, default=datetime.now)
+    modify_time = Column(DateTime, default=datetime.now)
+    prices = relationship('PriceInfo', backref='company', lazy='dynamic')
+
+    @staticmethod
+    def insert_companies():
+        companies = {'东方航空': 'MU',
+                     '祥鹏航空': '8L',
+                     '昆明航空': 'KY',
+                     '南方航空': 'CZ',
+                     '四川航空': '3U'}
+        session = DBSession()
+        for i in companies:
+            company = Company(company_name=i)
+            company.prefix = companies[i]
+            session.add_all([company])
+            session.commit()
+            session.close()
 
 
 class Option(Base):
@@ -75,11 +109,12 @@ engine = create_engine(META_DB_URI)
 DBSession = sessionmaker(bind=engine)
 
 if __name__ == '__main__':
+    # 删除表
+    Base.metadata.drop_all(engine)
     # 创建表
     Base.metadata.create_all(engine)
     Option.insert_options()
-    # 删除表
-    # Base.metadata.drop_all(engine)
+    Company.insert_companies()
     # 插入测试数据
     session = DBSession()
     a1 = Airport(code='KMG', name='昆明长水机场', city='昆明', country='中国')
@@ -92,6 +127,8 @@ if __name__ == '__main__':
     s2 = Segment(dep_airport=a1, arv_airport=a3)
     s3 = Segment(dep_airport=a1, arv_airport=a4)
     s4 = Segment(dep_airport=a2, arv_airport=a3)
+    s5 = Segment(dep_airport=a2, arv_airport=a4)
+    s6 = Segment(dep_airport=a3, arv_airport=a4)
     session.add_all([s1, s2, s3, s4])
     session.commit()
     session.close()

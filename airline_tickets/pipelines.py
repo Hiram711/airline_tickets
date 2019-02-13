@@ -18,11 +18,25 @@ class SqlAlchemyPipeline:
 
     def process_item(self, item, spider):
         item = dict(item)  # by this way we can avoid the error that some items don't have some specific keys
-        p = PriceInfo(dep_airport_id=item.get('dep_id'), arv_airport_id=item.get('arv_id'),
-                      dep_date=datetime.strptime(item.get('dep_date'), '%Y%m%d').date(),
-                      flt_no=item.get('flt_no'), airplane_type=item.get('airplane_type'), flt_tm=item.get('flt_tm'),
-                      luxury_price=item.get('luxury_price'), economy_price=item.get('economy_price'),
-                      member_price=item.get('member_price'))
+        p = PriceInfo(company_id=item.get('company_id')
+                      , dep_airport_id=item.get('dep_airport_id')
+                      , arv_airport_id=item.get('arv_airport_id')
+                      , dep_date=datetime.strptime(item.get('dep_date'), '%Y%m%d')
+                      , flt_no=item.get('flt_no')
+                      , airplane_type=item.get('airplane_type')
+                      , dep_time=item.get('dep_time')
+                      , arv_time=item.get('arv_time')
+                      , flt_time=item.get('flt_time')
+                      , is_direct=item.get('is_direct')
+                      , transfer_city=item.get('transfer_city')
+                      , is_shared=item.get('is_shared')
+                      , share_company=item.get('share_company')
+                      , share_flt_no=item.get('share_flt_no')
+                      , price_type1=item.get('price_type1')
+                      , price_type2=item.get('price_type2')
+                      , discount=item.get('discount')
+                      , price=item.get('price')
+                      , create_date=datetime.strptime(item.get('create_date'), '%Y%m%d%H%M%S'))
         self.session.add(p)
         self.session.commit()
 
