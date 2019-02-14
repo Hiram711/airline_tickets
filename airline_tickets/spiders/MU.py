@@ -4,7 +4,19 @@ from airline_tickets.models import DBSession, Segment, Option, Company
 from datetime import datetime, timedelta
 from airline_tickets.items import TicketItem
 from bs4 import BeautifulSoup
+from scrapy_splash.request import SplashRequest
+
 import re
+
+# the lua script is for Splash to disable images load,visit the target website and wait for a specific time
+script = """
+function main(splash, args)
+  splash.images_enabled = false
+  assert(splash:go(args.url))
+  assert(splash:wait(args.wait))
+  return splash:html()
+end
+"""
 
 
 class MuSpider(scrapy.Spider):
@@ -35,12 +47,24 @@ class MuSpider(scrapy.Spider):
                 date_str = (now + timedelta(days=i)).strftime('%Y%m%d')[2:]
                 airline_url = 'http://www.ceair.com/booking/{0}-{1}-{2}_CNY.html'.format(dep_city, arv_city,
                                                                                          date_str)
-                yield scrapy.Request(airline_url, callback=self.parse, dont_filter=True,
-                                     meta={'dep_airport_id': segment.dep_airport.id,
-                                           'arv_airport_id': segment.arv_airport.id,
-                                           'dep_date': (now + timedelta(days=i)).strftime('%Y%m%d')})
+                ## this is for Selenium
+                # yield scrapy.Request(airline_url, callback=self.parse, dont_filter=True,
+                #                      meta={'dep_airport_id': segment.dep_airport.id,
+                #                            'arv_airport_id': segment.arv_airport.id,
+                #                            'dep_date': (now + timedelta(days=i)).strftime('%Y%m%d')})
+
+                ## this is for Splash
+                yield SplashRequest(airline_url, callback=self.parse, endpoint='execute',
+                                    args={
+                                        'lua_source': script,
+                                        'wait': 7
+                                    },
+                                    meta={'dep_airport_id': segment.dep_airport.id,
+                                          'arv_airport_id': segment.arv_airport.id,
+                                          'dep_date': (now + timedelta(days=i)).strftime('%Y%m%d')})
 
     def parse(self, response):
+        self.logger.debug(response.text)
         soup = BeautifulSoup(response.text, 'html5lib')
         l_flt = soup.find_all('article', class_='flight')
         get_time = datetime.now()
@@ -52,8 +76,9 @@ class MuSpider(scrapy.Spider):
             arv_airport_id = response.request.meta.get('arv_airport_id')
             dep_date = response.request.meta.get('dep_date')
             flt_no = re.findall(r'[A-Z]{2}[0-9]+', flt.select_one('.summary .title').get_text())[0]
-            airplane_type = flt.select_one('.body .flight-details ul.detail-info li .d-4 .popup.airplane').attrs[
-                'acfamily']
+            airplane_type = \
+                flt.select_one('.body .flight-details ul.detail-info li .d-4 .popup.airplane').attrs[
+                    'acfamily']
             dep_time = re_time.findall(flt.select_one('.summary .info .airport.r').get_text())[0].strip()
             arv_time = re_time.findall(flt.select('.summary .info .airport')[1].get_text())[0].strip()
             flt_time = flt.select_one('.summary').dfn.get_text().strip()
@@ -90,7 +115,8 @@ class MuSpider(scrapy.Spider):
                 item['price_type2'] = price_row.find_all('dt')[0].get_text()
                 price_info = price_row.select_one('dd.p-p').get_text()
                 if re_discount.match(price_info):
-                    item['discount'] = float(re_price.findall(re_discount.findall(price_info)[0].strip())[0]) / 10
+                    item['discount'] = float(
+                        re_price.findall(re_discount.findall(price_info)[0].strip())[0]) / 10
                     item['price'] = int(re.sub(r',{1}', '', re_price.findall(price_info)[1].strip()))
                 else:
                     item['discount'] = None

@@ -33,9 +33,30 @@ CRAWLER_DAYS = 3
 SPIDER_MODULES = ['airline_tickets.spiders']
 NEWSPIDER_MODULE = 'airline_tickets.spiders'
 
-# Selenium Config
-SELENIUM_TIMEOUT = 10
-SELENIUM_EXECUTABLE_PATH = r'D:\chromedriver_win32\chromedriver'
+## Selenium Config
+# SELENIUM_TIMEOUT = 10
+# SELENIUM_EXECUTABLE_PATH = r'D:\chromedriver_win32\chromedriver'
+## Enable or disable downloader middlewares for Selenium
+# DOWNLOADER_MIDDLEWARES = {
+#     'airline_tickets.middlewares.RandomUserAgentMiddleware': 553,
+#     'airline_tickets.middlewares.ProxyMiddleware': 554,
+#     'airline_tickets.middlewares.SeleniumMiddleware': 555,
+# }
+
+# Splash Config
+SPLASH_URL='http://10.42.11.227:8050'
+SPIDER_MIDDLEWARES = {
+    'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
+}
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy_splash.SplashCookiesMiddleware': 723,
+    'scrapy_splash.SplashMiddleware': 725,
+    'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810
+}
+# Duplicate filter
+DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
+# Http Cache Storage
+HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 
 # Log config
 from datetime import datetime
@@ -78,14 +99,6 @@ ROBOTSTXT_OBEY = False
 #     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
 # }
 
-# Enable or disable downloader middlewares
-# See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-DOWNLOADER_MIDDLEWARES = {
-    'airline_tickets.middlewares.RandomUserAgentMiddleware': 553,
-    'airline_tickets.middlewares.ProxyMiddleware': 554,
-    'airline_tickets.middlewares.SeleniumMiddleware': 555,
-}
-
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
 # EXTENSIONS = {
@@ -96,7 +109,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'airline_tickets.pipelines.SqlAlchemyPipeline': 300,
-    # 'airline_tickets.pipelines.MongoPipeline': 301
+    # 'airline_tickets.pipelines.MongoPipeline': 301  # this pipeline is for MongoDB
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

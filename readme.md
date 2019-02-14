@@ -1,10 +1,25 @@
 # Airline_Tickets
 
 ## Introduction
+**This branch named Splash.Of course we will use Splash instaed of Selenium.In this way we can keep the asynchronism of Scrapy and improve the speed of spider.**
+
 This project is aimed to crawl the detail price info from airlines' official websites by scrapy.
 
 ## Quick Start
-> The project supports both Linux and Windows operation system
+> This branch of the project supports both Linux and Windows operation system
+* Make sure docker installed(recommend in Linux)
+```bash
+yum makecache fast
+curl sSL https://get.daocloud.io/docker | sh
+```
+
+* Install Splash with docker and start it with Private mode off
+```bash
+docker run -d -p 8050:8050 scrapinghub/splash --disable-private-mode
+```
+
+* Make sure the splash service on by visiting the http://ip:8050  with your browser 
+
 > The following scripts can be executed under Linux and Windows
 * Clone the project
 ```bash
