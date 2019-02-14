@@ -11,9 +11,9 @@
 
 BOT_NAME = 'airline_tickets'
 
+# DB Config
 import os
 import sys
-
 basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 # SQLite URI compatible
 WIN = sys.platform.startswith('win')
@@ -27,13 +27,21 @@ META_DB_URI = os.environ.get('META_DB_URI') or prefix + os.path.join(basedir, 'd
 # MONGO_URI = 'mongodb://127.0.0.1:27017'
 # MONGO_DB = 'airline_tickets'
 
+# how many days after today the spider will crawl,if set thie option,the same option in the database will be override
 CRAWLER_DAYS = 3
 
 SPIDER_MODULES = ['airline_tickets.spiders']
 NEWSPIDER_MODULE = 'airline_tickets.spiders'
 
+# Selenium Config
 SELENIUM_TIMEOUT = 10
 SELENIUM_EXECUTABLE_PATH = r'D:\chromedriver_win32\chromedriver'
+
+# Log config
+from datetime import datetime
+log_file_path = "log/%s.log"%datetime.now().strftime('%Y%m%d%H%M%S')
+LOG_LEVEL = 'DEBUG'
+LOG_FILE = log_file_path
 
 # Enable this option to use proxy server
 # PROXY_URL='http://127.0.0.1:5000'
