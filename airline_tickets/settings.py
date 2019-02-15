@@ -44,7 +44,7 @@ NEWSPIDER_MODULE = 'airline_tickets.spiders'
 # }
 
 # Splash Config
-SPLASH_URL='http://10.42.11.227:8050'
+SPLASH_URL='http://10.42.1.74:8050'
 SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
 }

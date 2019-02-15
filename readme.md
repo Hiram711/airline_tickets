@@ -9,8 +9,16 @@ This project is aimed to crawl the detail price info from airlines' official web
 > This branch of the project supports both Linux and Windows operation system
 * Make sure docker installed(recommend in Linux)
 ```bash
-yum makecache fast
-curl sSL https://get.daocloud.io/docker | sh
+yum install -y docker-ce
+
+vi /etc/docker/daemon.json
+{
+  "registry-mirrors": ["https://aj2rgad5.mirror.aliyuncs.com"]
+}
+
+systemctl start docker
+docker version
+docker run hello-world
 ```
 
 * Install Splash with docker and start it with Private mode off

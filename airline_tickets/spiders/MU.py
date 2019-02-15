@@ -64,7 +64,6 @@ class MuSpider(scrapy.Spider):
                                           'dep_date': (now + timedelta(days=i)).strftime('%Y%m%d')})
 
     def parse(self, response):
-        self.logger.debug(response.text)
         soup = BeautifulSoup(response.text, 'html5lib')
         l_flt = soup.find_all('article', class_='flight')
         get_time = datetime.now()
