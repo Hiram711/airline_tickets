@@ -6,7 +6,7 @@ from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 
 if __name__ == '__main__':
-    # debug single spider
+    # # debug single spider
     # sys.path.append(os.path.abspath(__file__))
     # execute('scrapy crawl MU'.split())
 

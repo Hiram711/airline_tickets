@@ -6,8 +6,18 @@ from scrapy_splash.request import SplashRequest
 script = """
 function main(splash, args)
   splash.images_enabled = false
-  assert(splash:go(args.url))
-  assert(splash:wait(args.wait))
+  splash:set_user_agent(args.user_agent)
+ -- This script is no more useful and replaced by the middleware ProxyMiddleware 
+ -- splash:on_request(
+ --   function(request)
+ --   request:set_proxy{
+ --       host = "118.190.95.34",
+ --       port = 9001,
+ --       type = 'http'
+ --   }
+ --   end)
+  splash:go(args.url)
+  splash:wait(args.wait)
   return splash:html()
 end
 """
@@ -16,8 +26,10 @@ end
 class HttpBinSpider(scrapy.Spider):
     name = 'httpbin'
 
+    # # this is for selenium
     # start_urls = ['http://httpbin.org/get']
 
+    # this is for splash
     def start_requests(self):
         yield SplashRequest('http://httpbin.org/get', callback=self.parse, endpoint='execute',
                             args={

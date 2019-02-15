@@ -49,6 +49,8 @@ SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
 }
 DOWNLOADER_MIDDLEWARES = {
+    'airline_tickets.middlewares.RandomUserAgentMiddleware': 553,
+    'airline_tickets.middlewares.ProxyMiddleware': 554,
     'scrapy_splash.SplashCookiesMiddleware': 723,
     'scrapy_splash.SplashMiddleware': 725,
     'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810

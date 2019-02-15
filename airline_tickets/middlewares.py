@@ -35,7 +35,11 @@ class RandomUserAgentMiddleware:
         ]
 
     def process_request(self, request, spider):
-        request.headers['User-Agent'] = random.choice(self.user_agents)
+        splash = request.meta.get("splash")
+        if splash:
+            splash['args']["user_agent"] = random.choice(self.user_agents)
+        else:
+            request.headers['User-Agent'] = random.choice(self.user_agents)
 
 
 class ProxyMiddleware:
@@ -55,7 +59,7 @@ class ProxyMiddleware:
                 return False
 
             if response.status_code == 200:
-                proxy = response.text
+                proxy = response.text  # should be like this: 127.1.0.1:5212
 
                 return proxy
 
@@ -67,12 +71,18 @@ class ProxyMiddleware:
 
         proxy = self.get_random_proxy()
 
+        splash = request.meta.get("splash")
+
         if proxy:
-            uri = 'https://{proxy}'.format(proxy=proxy)
+            uri = 'http://{proxy}'.format(proxy=proxy)
 
             self.logger.debug('Using proxy' + proxy)
 
-            request.meta['proxy'] = uri
+            # judge whether this request is splash request
+            if splash:
+                splash['args']["proxy"] = uri
+            else:
+                request.meta['proxy'] = uri
 
     @classmethod
     def from_crawler(cls, crawler):

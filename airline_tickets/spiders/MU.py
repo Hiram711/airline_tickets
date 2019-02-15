@@ -12,8 +12,9 @@ import re
 script = """
 function main(splash, args)
   splash.images_enabled = false
-  assert(splash:go(args.url))
-  assert(splash:wait(args.wait))
+  splash:set_user_agent(args.user_agent)
+  splash:go(args.url)
+  splash:wait(args.wait)
   return splash:html()
 end
 """
@@ -47,13 +48,13 @@ class MuSpider(scrapy.Spider):
                 date_str = (now + timedelta(days=i)).strftime('%Y%m%d')[2:]
                 airline_url = 'http://www.ceair.com/booking/{0}-{1}-{2}_CNY.html'.format(dep_city, arv_city,
                                                                                          date_str)
-                ## this is for Selenium
+                # # this is for Selenium
                 # yield scrapy.Request(airline_url, callback=self.parse, dont_filter=True,
                 #                      meta={'dep_airport_id': segment.dep_airport.id,
                 #                            'arv_airport_id': segment.arv_airport.id,
                 #                            'dep_date': (now + timedelta(days=i)).strftime('%Y%m%d')})
 
-                ## this is for Splash
+                # this is for Splash
                 yield SplashRequest(airline_url, callback=self.parse, endpoint='execute',
                                     args={
                                         'lua_source': script,
