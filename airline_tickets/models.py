@@ -88,6 +88,9 @@ class Company(Base):
             session.commit()
             session.close()
 
+    def __repr__(self):
+        return "<Company(%s,%s)>" % (self.prefix, self.company_name)
+
 
 class Option(Base):
     __tablename__ = 'options'
