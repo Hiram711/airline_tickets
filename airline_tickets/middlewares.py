@@ -76,7 +76,7 @@ class ProxyMiddleware:
         if proxy:
             uri = 'http://{proxy}'.format(proxy=proxy)
 
-            self.logger.debug('Using proxy' + proxy)
+            self.logger.debug('Using proxy:' + proxy)
 
             # judge whether this request is splash request
             if splash:

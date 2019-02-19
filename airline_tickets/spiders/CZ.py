@@ -58,7 +58,7 @@ class CzSpider(scrapy.Spider):
                 yield SplashRequest(airline_url, callback=self.parse, endpoint='execute',
                                     args={
                                         'lua_source': script,
-                                        'wait': 10
+                                        'wait': 5
                                     },
                                     meta={'dep_airport_id': segment.dep_airport.id,
                                           'arv_airport_id': segment.arv_airport.id,
@@ -118,8 +118,8 @@ class CzSpider(scrapy.Spider):
                 item['share_flt_no'] = share_flt_no
                 item['price_type1'] = l_price_class1[int(price_row.parent.parent.attrs['data-cabin'])]
                 item['price_type2'] = price_row.select_one('.cabin-info .cabin-name').get_text()
-                item['discount'] = float(
-                    price_row.select_one('.cabin-other').find_all('li')[1].get_text().replace('折', '')) / 10
+                price_info = price_row.select_one('.cabin-other').find_all('li')[1].get_text().replace('折', '')
+                item['discount'] = 1.0 if price_info == '全 价' else float(price_info) / 10
                 item['price'] = int(
                     re_price.findall(price_row.select_one('.cabin-price-info').get_text())[0].replace('¥', ''))
                 item['create_date'] = get_time.strftime('%Y%m%d%H%M%S')

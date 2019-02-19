@@ -67,7 +67,7 @@ LOG_LEVEL = 'DEBUG'
 LOG_FILE = log_file_path
 
 # Enable this option to use proxy server
-# PROXY_URL='http://127.0.0.1:5000'
+# PROXY_URL = 'http://127.0.0.1:5010'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
