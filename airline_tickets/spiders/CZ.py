@@ -30,12 +30,10 @@ end
 class CzSpider(scrapy.Spider):
     name = 'CZ'
 
-    # custom_settings = {
-    #     'ITEM_PIPELINES': {
-    #         'airline_tickets.pipelines.SqlAlchemyPipeline': 300,
-    #         'airline_tickets.pipelines.MongoPipeline': 301
-    #     }
-    # }
+    custom_settings = {
+        'CONCURRENT_REQUESTS': 7,  # use this option to make the requests handled one by one
+        'PROXY_URL': None,  # use this option to disable using proxy
+    }
 
     def __init__(self):
         super(CzSpider, self).__init__()
@@ -58,7 +56,7 @@ class CzSpider(scrapy.Spider):
                 yield SplashRequest(airline_url, callback=self.parse, endpoint='execute',
                                     args={
                                         'lua_source': script,
-                                        'wait': 5
+                                        'wait': 20
                                     },
                                     meta={'dep_airport_id': segment.dep_airport.id,
                                           'arv_airport_id': segment.arv_airport.id,
@@ -70,6 +68,9 @@ class CzSpider(scrapy.Spider):
             self.logger.error("Blocked when crawling %s" % response.url)
             return
         l_flt = soup.find_all(class_='zls-flight-cell')
+        self.logger.debug('Flights count of %s-%s on %s is %s' % (
+            response.request.meta.get('dep_airport_id'), response.request.meta.get('arv_airport_id'),
+            response.request.meta.get('dep_date'), len(l_flt)))
         get_time = datetime.now()
         re_price = re.compile('¥[0-9.,]+')
         l_price_class1 = ['头等舱', '公务舱', '明珠经济舱', '经济舱']

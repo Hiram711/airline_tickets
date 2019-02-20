@@ -15,7 +15,7 @@ user_agents = [
 
 
 def get_proxy():
-    response = requests.get('http://127.0.0.1:5010/get')
+    response = requests.get('http://10.42.11.226:5010/get')
     proxy = response.text
     proxy = {'http': proxy, 'https': proxy}
     return proxy

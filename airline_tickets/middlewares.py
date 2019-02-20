@@ -12,6 +12,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+# for debug to disable insecureWarning
+requests.packages.urllib3.disable_warnings()
+
 
 class RandomUserAgentMiddleware:
 
@@ -74,15 +77,21 @@ class ProxyMiddleware:
         splash = request.meta.get("splash")
 
         if proxy:
-            uri = 'http://{proxy}'.format(proxy=proxy)
+
+            uri_http = 'http://{proxy}'.format(proxy=proxy)
+            uri_https = 'https://{proxy}'.format(proxy=proxy)
 
             self.logger.debug('Using proxy:' + proxy)
 
             # judge whether this request is splash request
             if splash:
-                splash['args']["proxy"] = uri
+                # when using splash there is no need to judge the request type(http or https)
+                splash['args']["proxy"] = uri_http
             else:
-                request.meta['proxy'] = uri
+                if request.url.startswith("http://"):
+                    request.meta['proxy'] = uri_http
+                elif request.url.startswith("https://"):
+                    request.meta['proxy'] = uri_https
 
     @classmethod
     def from_crawler(cls, crawler):

@@ -24,12 +24,14 @@ class MuSpider(scrapy.Spider):
     name = 'MU'
     allowed_domains = ['ceair.com']
 
-    # custom_settings = {
-    #     'ITEM_PIPELINES': {
-    #         'airline_tickets.pipelines.SqlAlchemyPipeline': 300,
-    #         'airline_tickets.pipelines.MongoPipeline': 301
-    #     }
-    # }
+    custom_settings = {
+        # 'ITEM_PIPELINES': {
+        #     'airline_tickets.pipelines.SqlAlchemyPipeline': 300,
+        #     'airline_tickets.pipelines.MongoPipeline': 301
+        # },
+
+        'PROXY_URL': None,  # use this option to disable using proxy
+    }
 
     def __init__(self):
         super(MuSpider, self).__init__()
@@ -58,7 +60,7 @@ class MuSpider(scrapy.Spider):
                 yield SplashRequest(airline_url, callback=self.parse, endpoint='execute',
                                     args={
                                         'lua_source': script,
-                                        'wait': 7
+                                        'wait': 15
                                     },
                                     meta={'dep_airport_id': segment.dep_airport.id,
                                           'arv_airport_id': segment.arv_airport.id,
@@ -67,6 +69,9 @@ class MuSpider(scrapy.Spider):
     def parse(self, response):
         soup = BeautifulSoup(response.text, 'html5lib')
         l_flt = soup.find_all('article', class_='flight')
+        self.logger.debug('Flights count of %s-%s on %s is %s' % (
+            response.request.meta.get('dep_airport_id'), response.request.meta.get('arv_airport_id'),
+            response.request.meta.get('dep_date'), len(l_flt)))
         get_time = datetime.now()
         re_time = re.compile(r'\d{2}:\d{2}')
         re_discount = re.compile(r'.*折')
