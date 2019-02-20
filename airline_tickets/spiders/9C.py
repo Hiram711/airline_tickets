@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
-from airline_tickets.models import DBSession, Segment, Option, Company
+from airline_tickets.models import DBSession, Segment, Option, Company, Airport
 from datetime import datetime, timedelta
 from airline_tickets.items import TicketItem
 import json
@@ -18,7 +18,8 @@ class CQSpider(scrapy.Spider):
                 'airline_tickets.middlewares.ProxyMiddleware': 554,
             },
         'DUPEFILTER_CLASS': 'scrapy.dupefilters.RFPDupeFilter',  # disable splash and using default setting
-        'HTTPCACHE_STORAGE': 'scrapy.extensions.httpcache.FilesystemCacheStorage',  # disable splash and using default setting
+        'HTTPCACHE_STORAGE': 'scrapy.extensions.httpcache.FilesystemCacheStorage',
+        # disable splash and using default setting
         'PROXY_URL': None,  # use this option to disable using proxy
     }
 
@@ -53,7 +54,7 @@ class CQSpider(scrapy.Spider):
                     'Active9s': '',
                     'IsJC': 'false',
                     'Currency': '0',
-                    'SType': '1',
+                    'SType': '0',
                     'Departure': dep_city,
                     'Arrival': arv_city,
                     'DepartureDate': date_str,
@@ -69,11 +70,45 @@ class CQSpider(scrapy.Spider):
                     'CabinActId': 'null',
                     'isdisplayold': 'false',
                 }
-                yield scrapy.FormRequest(api_url, callback=self.parse, headers=headers, formdata=data)
+                yield scrapy.FormRequest(api_url, callback=self.parse, headers=headers, formdata=data,
+                                         meta={'dep_airport_id': segment.dep_airport.id,
+                                               'arv_airport_id': segment.arv_airport.id,
+                                               'dep_date': (now + timedelta(days=i)).strftime('%Y%m%d')})
 
     def parse(self, response):
         data = json.loads(response.text)
+        dep_date = response.request.meta.get('dep_date')
+        dep_airport_id = response.request.meta.get('dep_airport_id')
+        arv_airport_id = response.request.meta.get('arv_airport_id')
+        flts = data.get('Route')
         self.logger.debug(data)
+        for flt in flts:
+            if len(flt) > 1:  # when the result is connecting flights,ignore this result
+                continue
+            flt = flt[0]
+            airplane_type = flt.get('Type')
+            flt_time = flt.get('FlightsTime')
+            flt_no = flt.get('No')
+            dep_date = response.request.meta.get('dep_date')
+            dep_airport_code = flt.get('DepartureAirportCode')
+            dep_airport = self.session.query(Airport).filter_by(code=dep_airport_code).first()
+            dep_airport_id = response.request.meta.get('dep_airport_id') if dep_airport is None else dep_airport.id
+            dep_time = flt.get('DepartureTimeBJ')[11:16]
+            arv_airport_code = flt.get('ArrivalAirportCode')
+            arv_airport = self.session.query(Airport).filter_by(code=arv_airport_code).first()
+            arv_airport_id = response.request.meta.get('arv_airport_id') if arv_airport is None else dep_airport.id
+            arv_time = flt.get('ArrivalTimeBJ')[11:16]
+            yb_price = flt.get('Price') * 100
+            cabins = flt.get('AircraftCabins')
+            for cabin in cabins:
+                cabin_infos = cabin.get('AircraftCabinInfos')
+                cabin_level = cabin.get('CabinLevel')
+                for cabin_info in cabin_infos:
+                    cabin_class = cabin_info.get('Name')
+                    cabin_price = cabin_info.get('Price')
+                    cabin_remain = cabin_info.get('Remain')
+                    print(flt_no, dep_date, dep_airport_code, arv_airport_code, flt_time, airplane_type, cabin_level,
+                          cabin_class, cabin_price)
 
     def closed(self, reason):
         self.session.close()

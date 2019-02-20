@@ -8,7 +8,7 @@ from scrapy.utils.project import get_project_settings
 if __name__ == '__main__':
     # debug single spider
     sys.path.append(os.path.abspath(__file__))
-    execute('scrapy crawl CQ'.split())
+    execute('scrapy crawl 9C'.split())
 
     # # execute all the spider
     # os.environ.setdefault('SCRAPY_SETTINGS_MODULE', 'airline_tickets.settings')  # must load the project settings first

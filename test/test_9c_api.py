@@ -1,5 +1,6 @@
 import requests
 import random
+import json
 
 user_agents = [
     'Mozilla/5.0 (Windows; U; MSIE 9.0; Windows NT 9.0; en-US)',
@@ -43,10 +44,10 @@ def run_request():
         'Active9s': '',
         'IsJC': 'false',
         'Currency': '0',
-        'SType': '1',
+        'SType': '0',
         'Departure': '上海',
         'Arrival': '昆明',
-        'DepartureDate': '2019-03-01',
+        'DepartureDate': '2019-03-02',
         'ReturnDate': 'null',
         'IsIJFlight': 'false',
         'IsBg': 'false',
@@ -61,9 +62,34 @@ def run_request():
     }
 
     response = requests.post(url, data=data, headers=get_headers(), timeout=10)
-    res = response.json()
+    res = response.text
     return res
 
 
 if __name__ == '__main__':
-    print(run_request())
+    response = run_request()
+    # print(response)
+    data = json.loads(response)
+    flts = data.get('Route')
+    for flt in flts:
+        if len(flt) > 1:  # when the result is connecting flights,ignore this result
+            continue
+        flt = flt[0]
+        airplane_type = flt.get('Type')
+        flt_time = flt.get('FlightsTime')
+        flt_no = flt.get('No')
+        dep_airport_code = flt.get('DepartureAirportCode')
+        dep_time = flt.get('DepartureTimeBJ')[11:16]
+        arv_airport_code = flt.get('ArrivalAirportCode')
+        arv_time = flt.get('ArrivalTimeBJ')[11:16]
+        yb_price = flt.get('Price') * 100
+        cabins = flt.get('AircraftCabins')
+        for cabin in cabins:
+            cabin_infos = cabin.get('AircraftCabinInfos')
+            cabin_level = cabin.get('CabinLevel')
+            for cabin_info in cabin_infos:
+                cabin_class = cabin_info.get('Name')
+                cabin_price = cabin_info.get('Price')
+                cabin_remain = cabin_info.get('Remain')
+                print(flt_no, dep_airport_code, arv_airport_code, flt_time, airplane_type,
+                      cabin_level, cabin_class, cabin_price)
