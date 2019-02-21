@@ -30,7 +30,7 @@ class MuSpider(scrapy.Spider):
         #     'airline_tickets.pipelines.MongoPipeline': 301
         # },
 
-        'PROXY_URL': None,  # use this option to disable using proxy
+        'PROXY_URL': 'http://10.42.11.226:5010/get',  # set this option to None to disable using proxy
     }
 
     def __init__(self):

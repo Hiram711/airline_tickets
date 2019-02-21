@@ -2,6 +2,7 @@
 
 import random
 import requests
+import time
 from logging import getLogger
 
 from scrapy.http import HtmlResponse
@@ -11,6 +12,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.action_chains import ActionChains
 
 # for debug to disable insecureWarning
 requests.packages.urllib3.disable_warnings()
@@ -156,6 +158,15 @@ class SeleniumMiddleware:
 
             if spider.name == 'MU':
                 wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.flight')))
+
+            if spider.name == 'CZ':
+                wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.zls-flight-cell')))
+                click_items = browser.find_elements_by_css_selector('.zls-cabin-cell')
+                for click_item in click_items:
+                    action = ActionChains(browser)
+                    action.move_to_element(click_item).click().perform()
+                    time.sleep(0.1)
+                time.sleep(1)
 
             return HtmlResponse(url=request.url, body=browser.page_source, request=request, encoding='utf-8',
 

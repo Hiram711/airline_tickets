@@ -79,9 +79,12 @@ class Company(Base):
                      '祥鹏航空': '8L',
                      '昆明航空': 'KY',
                      '南方航空': 'CZ',
-                     '四川航空': '3U'}
+                     '四川航空': '3U',
+                     '春秋航空': '9C'}
         session = DBSession()
         for i in companies:
+            if session.query(Company).filter_by(prefix=companies[i]).first():
+                continue
             company = Company(company_name=i)
             company.prefix = companies[i]
             session.add_all([company])

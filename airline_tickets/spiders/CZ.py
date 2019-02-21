@@ -15,6 +15,8 @@ function main(splash, args)
   splash:set_user_agent(args.user_agent)
   splash:go(args.url)
   splash:wait(args.wait)
+  splash:set_viewport_full()
+  splash:wait(args.wait)
   click_items=splash:select_all('.zls-cabin-cell')
   for k,v in ipairs(click_items)
   do
@@ -30,9 +32,25 @@ end
 class CzSpider(scrapy.Spider):
     name = 'CZ'
 
+    # # this is for Selenium
+    # custom_settings = {
+    #     'SELENIUM_TIMEOUT': 30,
+    #     'SPIDER_MIDDLEWARES': {},  # disable splash
+    #     'DOWNLOADER_MIDDLEWARES':
+    #         {
+    #             'airline_tickets.middlewares.RandomUserAgentMiddleware': 553,
+    #             'airline_tickets.middlewares.ProxyMiddleware': 554,
+    #             'airline_tickets.middlewares.SeleniumMiddleware': 555,
+    #         },
+    #     'DUPEFILTER_CLASS': 'scrapy.dupefilters.RFPDupeFilter',  # disable splash and using default setting
+    #     'HTTPCACHE_STORAGE': 'scrapy.extensions.httpcache.FilesystemCacheStorage',  # disable splash and using default setting
+    #     'PROXY_URL': 'http://10.42.11.226:5010/get',  # use this option to disable using proxy
+    # }
+
+    # this is for Splash
     custom_settings = {
-        'CONCURRENT_REQUESTS': 7,  # use this option to make the requests handled one by one
-        'PROXY_URL': None,  # use this option to disable using proxy
+        # 'CONCURRENT_REQUESTS': 7,  # use this option to make the requests handled one by one
+        'PROXY_URL': 'http://10.42.11.226:5010/get',  # use this option to disable using proxy
     }
 
     def __init__(self):
@@ -56,18 +74,24 @@ class CzSpider(scrapy.Spider):
                 yield SplashRequest(airline_url, callback=self.parse, endpoint='execute',
                                     args={
                                         'lua_source': script,
-                                        'wait': 20
+                                        'wait': 5
                                     },
                                     meta={'dep_airport_id': segment.dep_airport.id,
                                           'arv_airport_id': segment.arv_airport.id,
                                           'dep_date': (now + timedelta(days=i)).strftime('%Y%m%d')})
+
+                # # this is for Selenium
+                # yield scrapy.Request(airline_url, callback=self.parse, dont_filter=True,
+                #                      meta={'dep_airport_id': segment.dep_airport.id,
+                #                            'arv_airport_id': segment.arv_airport.id,
+                #                            'dep_date': (now + timedelta(days=i)).strftime('%Y%m%d')})
 
     def parse(self, response):
         soup = BeautifulSoup(response.text, 'html5lib')
         if soup.find('h3', text='验证码'):
             self.logger.error("Blocked when crawling %s" % response.url)
             return
-        l_flt = soup.find_all(class_='zls-flight-cell')
+        l_flt = soup.select('.zls-flight-cell')
         self.logger.debug('Flights count of %s-%s on %s is %s' % (
             response.request.meta.get('dep_airport_id'), response.request.meta.get('arv_airport_id'),
             response.request.meta.get('dep_date'), len(l_flt)))

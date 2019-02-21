@@ -34,8 +34,8 @@ SPIDER_MODULES = ['airline_tickets.spiders']
 NEWSPIDER_MODULE = 'airline_tickets.spiders'
 
 ## Selenium Config
-# SELENIUM_TIMEOUT = 10
-# SELENIUM_EXECUTABLE_PATH = r'D:\chromedriver_win32\chromedriver'
+SELENIUM_TIMEOUT = 10
+SELENIUM_EXECUTABLE_PATH = r'D:\chromedriver_win32\chromedriver'
 ## Enable or disable downloader middlewares for Selenium
 # DOWNLOADER_MIDDLEWARES = {
 #     'airline_tickets.middlewares.RandomUserAgentMiddleware': 553,
