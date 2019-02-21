@@ -50,6 +50,7 @@ class CzSpider(scrapy.Spider):
     # this is for Splash
     custom_settings = {
         # 'CONCURRENT_REQUESTS': 7,  # use this option to make the requests handled one by one
+        'USE_PROXY_DEFAULT': False,
         'PROXY_URL': 'http://10.42.11.226:5010/get',  # use this option to disable using proxy
     }
 
@@ -74,7 +75,7 @@ class CzSpider(scrapy.Spider):
                 yield SplashRequest(airline_url, callback=self.parse, endpoint='execute',
                                     args={
                                         'lua_source': script,
-                                        'wait': 5
+                                        'wait': 10
                                     },
                                     meta={'dep_airport_id': segment.dep_airport.id,
                                           'arv_airport_id': segment.arv_airport.id,

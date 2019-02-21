@@ -49,11 +49,13 @@ class RandomUserAgentMiddleware:
 
 class ProxyMiddleware:
 
-    def __init__(self, proxy_url):
+    def __init__(self, proxy_url, use_proxy_default):
 
         self.logger = getLogger(__name__)
 
         self.proxy_url = proxy_url
+
+        self.use_proxy_default = use_proxy_default
 
     def get_random_proxy(self):
 
@@ -77,6 +79,11 @@ class ProxyMiddleware:
         proxy = self.get_random_proxy()
 
         splash = request.meta.get("splash")
+
+        if not self.use_proxy_default:
+            retries = request.meta.get('retry_times', 0)
+            if retries == 0:
+                return
 
         if proxy:
 
@@ -102,7 +109,8 @@ class ProxyMiddleware:
 
         return cls(
 
-            proxy_url=settings.get('PROXY_URL')
+            proxy_url=settings.get('PROXY_URL'),
+            use_proxy_default=settings.get('USE_PROXY_DEFAULT', False)
 
         )
 

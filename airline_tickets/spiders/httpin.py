@@ -29,6 +29,11 @@ class HttpBinSpider(scrapy.Spider):
     # # this is for selenium
     # start_urls = ['http://httpbin.org/get']
 
+    custom_settings = {
+        'USE_PROXY_DEFAULT': True,
+        'PROXY_URL': 'http://10.42.11.226:5010/get',
+    }
+
     # this is for splash
     def start_requests(self):
         yield SplashRequest('http://httpbin.org/get', callback=self.parse, endpoint='execute',

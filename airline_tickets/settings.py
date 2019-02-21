@@ -28,7 +28,7 @@ META_DB_URI = os.environ.get('META_DB_URI') or prefix + os.path.join(basedir, 'd
 # MONGO_DB = 'airline_tickets'
 
 # how many days after today the spider will crawl,if set thie option,the same option in the database will be override
-CRAWLER_DAYS = 3
+CRAWLER_DAYS = 7
 
 SPIDER_MODULES = ['airline_tickets.spiders']
 NEWSPIDER_MODULE = 'airline_tickets.spiders'
@@ -68,6 +68,8 @@ LOG_FILE = log_file_path
 
 # Enable this option to use proxy server
 PROXY_URL = 'http://10.42.11.226:5010/get'
+# this option controls whether a request will be with a proxy in the first time, default False
+USE_PROXY_DEFAULT = False
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
