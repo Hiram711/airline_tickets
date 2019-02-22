@@ -4,7 +4,6 @@ from airline_tickets.models import DBSession, Segment, Option, Company, Airport
 from datetime import datetime, timedelta
 from airline_tickets.items import TicketItem
 import json
-import re
 
 
 class CQSpider(scrapy.Spider):

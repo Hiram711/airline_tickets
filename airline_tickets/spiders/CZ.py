@@ -1,56 +1,24 @@
 # -*- coding: utf-8 -*-
 import scrapy
+import json
 from airline_tickets.models import DBSession, Segment, Option, Company
 from datetime import datetime, timedelta
 from airline_tickets.items import TicketItem
-from bs4 import BeautifulSoup
-from scrapy_splash.request import SplashRequest
-
-import re
-
-# the lua script is for Splash to disable images load,visit the target website and wait for a specific time
-script = """
-function main(splash, args)
-  splash.images_enabled = false
-  splash:set_user_agent(args.user_agent)
-  splash:go(args.url)
-  splash:wait(args.wait)
-  splash:set_viewport_full()
-  splash:wait(args.wait)
-  click_items=splash:select_all('.zls-cabin-cell')
-  for k,v in ipairs(click_items)
-  do
-    click_item=v
-    click_item:mouse_click()
-    splash:wait(0.5)
-  end
-  return splash:html()
-end
-"""
 
 
 class CzSpider(scrapy.Spider):
     name = 'CZ'
 
-    # # this is for Selenium
-    # custom_settings = {
-    #     'SELENIUM_TIMEOUT': 30,
-    #     'SPIDER_MIDDLEWARES': {},  # disable splash
-    #     'DOWNLOADER_MIDDLEWARES':
-    #         {
-    #             'airline_tickets.middlewares.RandomUserAgentMiddleware': 553,
-    #             'airline_tickets.middlewares.ProxyMiddleware': 554,
-    #             'airline_tickets.middlewares.SeleniumMiddleware': 555,
-    #         },
-    #     'DUPEFILTER_CLASS': 'scrapy.dupefilters.RFPDupeFilter',  # disable splash and using default setting
-    #     'HTTPCACHE_STORAGE': 'scrapy.extensions.httpcache.FilesystemCacheStorage',  # disable splash and using default setting
-    #     'PROXY_URL': 'http://10.42.11.226:5010/get',  # use this option to disable using proxy
-    # }
-
-    # this is for Splash
     custom_settings = {
-        # 'CONCURRENT_REQUESTS': 7,  # use this option to make the requests handled one by one
-        'USE_PROXY_DEFAULT': False,
+        'SPIDER_MIDDLEWARES': {},  # disable splash
+        'DOWNLOADER_MIDDLEWARES':
+            {
+                'airline_tickets.middlewares.RandomUserAgentMiddleware': 553,
+                'airline_tickets.middlewares.ProxyMiddleware': 554,
+            },
+        'DUPEFILTER_CLASS': 'scrapy.dupefilters.RFPDupeFilter',  # disable splash and using default setting
+        'HTTPCACHE_STORAGE': 'scrapy.extensions.httpcache.FilesystemCacheStorage',
+        # disable splash and using default setting
         'PROXY_URL': 'http://10.42.11.226:5010/get',  # use this option to disable using proxy
     }
 
@@ -58,6 +26,17 @@ class CzSpider(scrapy.Spider):
         super(CzSpider, self).__init__()
         self.session = DBSession()
         self.company = self.session.query(Company).filter_by(prefix='CZ').first()
+        self.api_url = 'http://b2c.csair.com/portal/flight/direct/query'
+        self.headers = {
+            'Host': 'b2c.csair.com',
+            'Accept': 'application/json,text/javascript,*/*;q=0.01',
+            'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
+            'Accept-Encoding': 'gzip, deflate',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Referer': 'https://www.csair.com/cn/index.shtml',
+            'Connection': 'keep-alive',
+        }
 
     def start_requests(self):
         segments = self.session.query(Segment).filter_by(is_available=True).all()
@@ -68,36 +47,52 @@ class CzSpider(scrapy.Spider):
             for i in range(0, crawler_days):
                 dep_city = segment.dep_airport.code.upper()
                 arv_city = segment.arv_airport.code.upper()
-                date_str = (now + timedelta(days=i)).strftime('%Y-%m-%d')
-                airline_url = 'http://b2c.csair.com/B2C40/newTrips/static/main/page/booking/index.html?t=S&c1={0}&c2={1}&d1={2}&at=1&ct=0&it=0'.format(
-                    dep_city, arv_city, date_str)
-                # this is for Splash
-                yield SplashRequest(airline_url, callback=self.parse, endpoint='execute',
-                                    args={
-                                        'lua_source': script,
-                                        'wait': 10
-                                    },
-                                    meta={'dep_airport_id': segment.dep_airport.id,
-                                          'arv_airport_id': segment.arv_airport.id,
-                                          'dep_date': (now + timedelta(days=i)).strftime('%Y%m%d')})
-
-                # # this is for Selenium
-                # yield scrapy.Request(airline_url, callback=self.parse, dont_filter=True,
-                #                      meta={'dep_airport_id': segment.dep_airport.id,
-                #                            'arv_airport_id': segment.arv_airport.id,
-                #                            'dep_date': (now + timedelta(days=i)).strftime('%Y%m%d')})
+                date_str = (now + timedelta(days=i)).strftime('%Y%m%d')
+                data = {
+                    'action': '0',
+                    'adultNum': '1',
+                    'airLine': 1,
+                    'arrCity': arv_city,
+                    'cabinOrder': '0',
+                    'cache': 0,
+                    'childNum': '0',
+                    'depCity': dep_city,
+                    'flightDate': date_str,
+                    'flyType': 0,
+                    'infantNum': '0',
+                    'international': '0',
+                    'isMember': '',
+                    'preUrl': '',
+                    'segType': '1',
+                }
+                yield scrapy.FormRequest(self.api_url, callback=self.parse, dont_filter=True,
+                                         headers=self.headers, formdata=data,
+                                         meta=
+                                         {
+                                             'dep_airport_id': segment.dep_airport.id,
+                                             'arv_airport_id': segment.arv_airport.id,
+                                             'dep_date': date_str
+                                         }
+                                         )
 
     def parse(self, response):
-        soup = BeautifulSoup(response.text, 'html5lib')
-        if soup.find('h3', text='验证码'):
-            self.logger.error("Blocked when crawling %s" % response.url)
+        data = json.loads(response.text)
+        dep_airport_id = response.request.meta.get('dep_airport_id')
+        arv_airport_id = response.request.meta.get('arv_airport_id')
+        dep_date = response.request.meta.get('dep_date')
+        if data.get('success') == 'false':
+            self.logger.debug('Flights count of %s-%s on %s is 0' % (dep_airport_id, arv_airport_id, dep_date))
             return
-        l_flt = soup.select('.zls-flight-cell')
+        airplane_type_list = data.get('data').get('planes')
+        l_flt = data.get('data').get('segment').get('dateFlight').get('flight')
         self.logger.debug('Flights count of %s-%s on %s is %s' % (
             response.request.meta.get('dep_airport_id'), response.request.meta.get('arv_airport_id'),
             response.request.meta.get('dep_date'), len(l_flt)))
-        get_time = datetime.now()
-        re_price = re.compile('¥[0-9.,]+')
+        get_time = datetime.fromtimestamp(int(data.get('data').get('createTime')) / 1000)
+        fb_price = int(data.get('data').get('segment').get('dateFlight').get('fbasic').get('adultPrice'))
+        jb_price = int(data.get('data').get('segment').get('dateFlight').get('jbasic').get('adultPrice'))
+        wb_price = int(data.get('data').get('segment').get('dateFlight').get('wbasic').get('adultPrice'))
+        yb_price = int(data.get('data').get('segment').get('dateFlight').get('ybasic').get('adultPrice'))
         l_price_class1 = ['头等舱', '公务舱', '明珠经济舱', '经济舱']
         for flt in l_flt:
             if flt.find(class_='transicon tooltip-trigger'):
