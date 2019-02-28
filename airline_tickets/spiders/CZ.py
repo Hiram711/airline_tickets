@@ -6,6 +6,100 @@ from datetime import datetime, timedelta
 from airline_tickets.items import TicketItem
 
 
+def get_price_type1(name):
+    '''
+    :param name:cabin.name
+    :return:
+    '''
+    cabin_type = {
+        'F': 0,
+        'J': 1,
+        'C': 1,
+        'D': 1,
+        'I': 1,
+        'O': 1,
+        'W': 2,
+        'S': 2,
+        'gp': ['F', 'J', 'W', 'Y', 'P']
+    }
+    price_type = {
+        0: '头等舱',
+        1: '公务舱',
+        2: '明珠经济舱',
+        3: '经济舱',
+    }
+    type1 = cabin_type.get(name)
+    if type1:
+        return price_type.get(type1)
+    else:
+        return price_type.get(3)
+
+
+def get_price_type2(name, cabin, basis, MemberSign='XXSL'):
+    '''
+    :param name: cabin.brandType[0]
+    :param cabin: cabin.name,if null should be ""
+    :param basis: cabin.adultFareBasis,if null should be ""
+    :param MemberSign:MemberSign
+    :return:
+    '''
+    cabin = cabin.upper()
+    basis = basis.upper()
+    fllang = \
+        {
+            'fl0188': '全价',
+            'fl0080': '明珠头等舱',
+            'fl0008': '头等舱',
+            'fl0129': '会员专属',
+            'fl0009': '公务舱',
+            'fl0015': '折扣公务舱',
+            'fl0010': '明珠经济舱',
+            'fl0016': '折扣明珠经济舱',
+            'fl0119': '全价经济舱',
+            'fl0011': '经济舱',
+            'fl0017': '商易旅',
+            'fl0018': '优闲派',
+            'fl0019': '快乐飞',
+        }
+    if name == 'A':
+        if cabin == 'F':
+            return fllang.get('fl0188') + fllang.get('fl0008')
+        else:
+            return fllang.get('fl0080')
+    elif basis == MemberSign:
+        return fllang.get('fl0129')
+    elif name == 'F':
+        if cabin == 'F':
+            return fllang.get('fl0188') + fllang.get('fl0008')
+        else:
+            return fllang.get('fl0008')
+    elif name == 'J':
+        if cabin == 'J':
+            return fllang.get('fl0188') + fllang.get('fl0009')
+        else:
+            return fllang.get('fl0015')
+    elif name == 'W':
+        if cabin == 'W':
+            return fllang.get('fl0188') + fllang.get('fl0010')
+        elif cabin == 'S':
+            return fllang.get('fl0016')
+        else:
+            return fllang.get('fl0010')
+    elif name == 'SW':
+        if cabin == 'Y':
+            return fllang.get('fl0119')
+        elif cabin == 'YY':
+            return fllang.get('fl0119')
+        else:
+            return fllang.get('fl0017')
+    elif name == 'LX':
+        return fllang.get('fl0018')
+    elif name == 'BX':
+        return fllang.get('fl0019')
+    else:
+        return fllang.get('fl0011')
+
+
 class CzSpider(scrapy.Spider):
     name = 'CZ'
 
@@ -20,6 +114,7 @@ class CzSpider(scrapy.Spider):
         'HTTPCACHE_STORAGE': 'scrapy.extensions.httpcache.FilesystemCacheStorage',
         # disable splash and using default setting
         'PROXY_URL': 'http://10.42.11.226:5010/get',  # use this option to disable using proxy
+        'USE_PROXY_DEFAULT': True,
     }
 
     def __init__(self):
@@ -51,14 +146,14 @@ class CzSpider(scrapy.Spider):
                 data = {
                     'action': '0',
                     'adultNum': '1',
-                    'airLine': 1,
+                    'airLine': '1',  #
                     'arrCity': arv_city,
                     'cabinOrder': '0',
-                    'cache': 0,
+                    'cache': '0',  #
                     'childNum': '0',
                     'depCity': dep_city,
                     'flightDate': date_str,
-                    'flyType': 0,
+                    'flyType': '0',  #
                     'infantNum': '0',
                     'international': '0',
                     'isMember': '',
@@ -66,7 +161,7 @@ class CzSpider(scrapy.Spider):
                     'segType': '1',
                 }
                 yield scrapy.FormRequest(self.api_url, callback=self.parse, dont_filter=True,
-                                         headers=self.headers, formdata=data,
+                                         headers=self.headers, body=json.dumps(data),
                                          meta=
                                          {
                                              'dep_airport_id': segment.dep_airport.id,
@@ -80,47 +175,75 @@ class CzSpider(scrapy.Spider):
         dep_airport_id = response.request.meta.get('dep_airport_id')
         arv_airport_id = response.request.meta.get('arv_airport_id')
         dep_date = response.request.meta.get('dep_date')
-        if data.get('success') == 'false':
-            self.logger.debug('Flights count of %s-%s on %s is 0' % (dep_airport_id, arv_airport_id, dep_date))
-            return
+        if not data.get('success'):
+            self.logger.debug('When crawling %s-%s on %s got some errors' % (dep_airport_id, arv_airport_id, dep_date))
+            return None
         airplane_type_list = data.get('data').get('planes')
-        l_flt = data.get('data').get('segment').get('dateFlight').get('flight')
+        l_flt = data.get('data').get('segment')[0].get('dateFlight').get('flight')
         self.logger.debug('Flights count of %s-%s on %s is %s' % (
             response.request.meta.get('dep_airport_id'), response.request.meta.get('arv_airport_id'),
             response.request.meta.get('dep_date'), len(l_flt)))
+
+        # decrypt the json data
+        for flight in l_flt:
+            cabins = flight['cabin']
+            cabin_group = []
+            for cabin in cabins:
+                cabin_group.append(
+                    dict(
+                        cabin=cabin['name'],
+                        brand_type=cabin['brandType'][0],
+                        price_type1=get_price_type1(cabin['name']),
+                        price_type2=get_price_type2(cabin['brandType'][0], cabin['name'], cabin['adultFareBasis']),
+                        price=cabin['adultPrice']
+                    )
+                )
+            class_set = set()
+            for i in cabin_group:
+                class_set.add((i.get('price_type1'), i.get('price_type2')))
+            cabin_group_show = []
+            for i in class_set:
+                cabin = None
+                brand_type = None
+                price = 9999999
+                for j in cabin_group:
+                    if i[0] == j.get('price_type1') and i[1] == j.get('price_type2') and int(j.get('price')) < price:
+                        cabin = j.get('cabin')
+                        brand_type = j.get('brand_type')
+                        price = j.get('price')
+                    else:
+                        continue
+                cabin_group_show.append(
+                    dict(cabin=cabin, brand_type=brand_type, price_type1=i[0], price_type2=i[1], price=price))
+            flight['cabin_group_show'] = cabin_group_show
+
         get_time = datetime.fromtimestamp(int(data.get('data').get('createTime')) / 1000)
-        fb_price = int(data.get('data').get('segment').get('dateFlight').get('fbasic').get('adultPrice'))
-        jb_price = int(data.get('data').get('segment').get('dateFlight').get('jbasic').get('adultPrice'))
-        wb_price = int(data.get('data').get('segment').get('dateFlight').get('wbasic').get('adultPrice'))
-        yb_price = int(data.get('data').get('segment').get('dateFlight').get('ybasic').get('adultPrice'))
-        l_price_class1 = ['头等舱', '公务舱', '明珠经济舱', '经济舱']
+        fb_price = int(data.get('data').get('segment')[0].get('dateFlight').get('fbasic').get('adultPrice'))
+        jb_price = int(data.get('data').get('segment')[0].get('dateFlight').get('jbasic').get('adultPrice'))
+        wb_price = int(data.get('data').get('segment')[0].get('dateFlight').get('wbasic').get('adultPrice'))
+        yb_price = int(data.get('data').get('segment')[0].get('dateFlight').get('ybasic').get('adultPrice'))
+        base_price_dict = {'头等舱': fb_price, '公务舱': jb_price, '明珠经济舱': wb_price, '经济舱': yb_price}
         for flt in l_flt:
-            if flt.find(class_='transicon tooltip-trigger'):
-                continue
             dep_airport_id = response.request.meta.get('dep_airport_id')
             arv_airport_id = response.request.meta.get('arv_airport_id')
             dep_date = response.request.meta.get('dep_date')
-            flt_no = re.findall(r'[A-Z]{2}[0-9]{4}', flt.find(class_='zls-flgno-info').text)[0]
-            airplane_type = flt.find(class_='zls-flgplane').text.strip()
-            dep_time = re.findall(r'[0-9]{2}[:][0-9]{2}', flt.find_all(class_='zls-flgtime-dep')[0].text.strip())[0]
-            arv_time = re.findall(r'[0-9]{2}[:][0-9]{2}', flt.find_all(class_='zls-flgtime-arr')[0].text.strip())[0]
-            flt_time = flt.find(class_='zls-flg-time').text.replace('h', '小时').replace('m', '分钟'). \
-                replace('H', '小时').replace('M', '分钟')
-            is_direct = True
-            transfer_city = None
-            mid_info = flt.select_one('.zls-trans')
-            if mid_info:
-                is_direct = False
-                transfer_city = re.findall(r'([^：]+)$', mid_info)[0].replace(' ', '')
-            is_shared = False
-            share_company = None
-            share_flt_no = None
-            share_info = flt.find(attrs={'data-tip-class': 'share-show'})
-            if share_info:
-                is_shared = True
-                share_company = share_info.attrs['data-share'].split('#')[0]
-                share_flt_no = share_info.attrs['data-share'].split('#')[2]
-            price_list_meta = flt.find_all(class_='zls-price-cell')
+            flt_no = flt.get('flightNo')
+            airplane_type = None
+            for i in airplane_type_list:
+                if flt.get('plane') == i.get('code'):
+                    airplane_type = i.get('enName') or i.get('zhName') or i.get('code')
+
+            dep_time = flt.get('depTime')[:2] + ':' + flt.get('depTime')[2:]
+            arv_time = flt.get('arrTime')[:2] + ':' + flt.get('arrTime')[2:]
+            flt_time = flt.get('timeDuringFlight')
+            is_direct = True if flt.get('stopNumber') == 0 else False
+            transfer_city = flt.get('stopNameZh') if flt.get('stopNumber') == 1 else None
+            is_shared = True if flt.get('codeShare') == 'TRUE' else False
+            share_company = self.session.query(Company).filter_by(
+                prefix=flt.get('codeShareInfo')[:2]).first().company_name or flt.get('codeShareInfo')[:2] if flt.get(
+                'codeShare') == 'TRUE' else None
+            share_flt_no = flt.get('codeShareInfo') if flt.get('codeShare') == 'TRUE' else None
+            price_list_meta = flt.get('cabin_group_show')
             for price_row in price_list_meta:
                 item = TicketItem()
                 item['company_id'] = self.company.id
@@ -137,12 +260,10 @@ class CzSpider(scrapy.Spider):
                 item['is_shared'] = is_shared
                 item['share_company'] = share_company
                 item['share_flt_no'] = share_flt_no
-                item['price_type1'] = l_price_class1[int(price_row.parent.parent.attrs['data-cabin'])]
-                item['price_type2'] = price_row.select_one('.cabin-info .cabin-name').get_text()
-                price_info = price_row.select_one('.cabin-other').find_all('li')[1].get_text().replace('折', '')
-                item['discount'] = 1.0 if price_info == '全 价' else float(price_info) / 10
-                item['price'] = int(
-                    re_price.findall(price_row.select_one('.cabin-price-info').get_text())[0].replace('¥', ''))
+                item['price_type1'] = price_row.get('price_type1')
+                item['price_type2'] = price_row.get('price_type2')
+                item['price'] = int(price_row.get('price'))
+                item['discount'] = 1.0 * item['price'] / base_price_dict.get(item['price_type1'])
                 item['create_date'] = get_time.strftime('%Y%m%d%H%M%S')
                 yield item
 
