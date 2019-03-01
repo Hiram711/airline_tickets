@@ -18,8 +18,6 @@ class CQSpider(scrapy.Spider):
             },
         'DUPEFILTER_CLASS': 'scrapy.dupefilters.RFPDupeFilter',  # disable splash and using default setting
         'HTTPCACHE_STORAGE': 'scrapy.extensions.httpcache.FilesystemCacheStorage',
-        # disable splash and using default setting
-        'PROXY_URL': 'http://10.42.11.226:5010/get',  # use this option to disable using proxy
     }
 
     def __init__(self):

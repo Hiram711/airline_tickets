@@ -129,12 +129,12 @@ data = {
     'action': '0',
     'adultNum': '1',
     'airLine': 1,
-    'arrCity': 'PVG',
+    'arrCity': 'SHA',
     'cabinOrder': '0',
     'cache': 0,
     'childNum': '0',
-    'depCity': 'KMG',
-    'flightDate': '20190307',
+    'depCity': 'CTU',
+    'flightDate': '20190301',
     'flyType': 0,
     'infantNum': '0',
     'international': '0',
@@ -143,39 +143,41 @@ data = {
     'segType': '1',
 }
 
-response = requests.post(target_url, json=data, headers=get_headers(), )
+response = requests.post(target_url, json=data, headers=get_headers(), proxies={'http': 'http://102.176.160.29:47956'})
 print(response.status_code)
 data = response.json()
-
-flights = data['data']['segment'][0]['dateFlight']['flight']
-for flight in flights:
-    cabins = flight['cabin']
-    cabin_group = []
-    for cabin in cabins:
-        cabin_group.append(
-            dict(
-                cabin=cabin['name'],
-                brand_type=cabin['brandType'][0],
-                price_type1=get_price_type1(cabin['name']),
-                price_type2=get_price_type2(cabin['brandType'][0], cabin['name'], cabin['adultFareBasis']),
-                price=cabin['adultPrice']
+if not data.get('success'):
+    print('The error is %s' % data.get('errorMsg'))
+else:
+    flights = data['data']['segment'][0]['dateFlight']['flight']
+    for flight in flights:
+        cabins = flight['cabin']
+        cabin_group = []
+        for cabin in cabins:
+            cabin_group.append(
+                dict(
+                    cabin=cabin['name'],
+                    brand_type=cabin['brandType'][0],
+                    price_type1=get_price_type1(cabin['name']),
+                    price_type2=get_price_type2(cabin['brandType'][0], cabin['name'], cabin['adultFareBasis']),
+                    price=cabin['adultPrice']
+                )
             )
-        )
-    class_set = set()
-    for i in cabin_group:
-        class_set.add((i.get('price_type1'), i.get('price_type2')))
-    cabin_group_show = []
-    for i in class_set:
-        cabin = None
-        brand_type = None
-        price = 9999999
-        for j in cabin_group:
-            if i[0] == j.get('price_type1') and i[1] == j.get('price_type2') and int(j.get('price')) < price:
-                cabin = j.get('cabin')
-                brand_type = j.get('brand_type')
-                price = j.get('price')
-            else:
-                continue
-        cabin_group_show.append(
-            dict(cabin=cabin, brand_type=brand_type, price_type1=i[0], price_type2=i[1], price=price))
-    print(flight['flightNo'], cabin_group_show)
+        class_set = set()
+        for i in cabin_group:
+            class_set.add((i.get('price_type1'), i.get('price_type2')))
+        cabin_group_show = []
+        for i in class_set:
+            cabin = None
+            brand_type = None
+            price = 9999999
+            for j in cabin_group:
+                if i[0] == j.get('price_type1') and i[1] == j.get('price_type2') and int(j.get('price')) < price:
+                    cabin = j.get('cabin')
+                    brand_type = j.get('brand_type')
+                    price = j.get('price')
+                else:
+                    continue
+            cabin_group_show.append(
+                dict(cabin=cabin, brand_type=brand_type, price_type1=i[0], price_type2=i[1], price=price))
+        print(flight['flightNo'], cabin_group_show)

@@ -10,8 +10,6 @@ if __name__ == '__main__':
     sys.path.append(os.path.abspath(__file__))
     execute('scrapy crawl CZ'.split())
 
-    from scrapy.downloadermiddlewares.retry import RetryMiddleware
-
     # # execute all the spider
     # os.environ.setdefault('SCRAPY_SETTINGS_MODULE', 'airline_tickets.settings')  # must load the project settings first
     # process = CrawlerProcess(get_project_settings())

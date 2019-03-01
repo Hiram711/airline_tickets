@@ -29,8 +29,6 @@ class MuSpider(scrapy.Spider):
         #     'airline_tickets.pipelines.SqlAlchemyPipeline': 300,
         #     'airline_tickets.pipelines.MongoPipeline': 301
         # },
-
-        'PROXY_URL': 'http://10.42.11.226:5010/get',  # set this option to None to disable using proxy
     }
 
     def __init__(self):

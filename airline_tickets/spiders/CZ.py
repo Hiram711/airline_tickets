@@ -104,6 +104,8 @@ class CzSpider(scrapy.Spider):
     name = 'CZ'
 
     custom_settings = {
+        'RETRY_HTTP_CODES': [500, 502, 503, 504, 522, 524, 408, 400, 403, 404],
+        'COOKIES_ENABLED': False,
         'SPIDER_MIDDLEWARES': {},  # disable splash
         'DOWNLOADER_MIDDLEWARES':
             {
@@ -112,8 +114,6 @@ class CzSpider(scrapy.Spider):
             },
         'DUPEFILTER_CLASS': 'scrapy.dupefilters.RFPDupeFilter',  # disable splash and using default setting
         'HTTPCACHE_STORAGE': 'scrapy.extensions.httpcache.FilesystemCacheStorage',
-        # disable splash and using default setting
-        'PROXY_URL': 'http://10.42.11.226:5010/get',  # use this option to disable using proxy
         'USE_PROXY_DEFAULT': True,
     }
 
@@ -122,16 +122,6 @@ class CzSpider(scrapy.Spider):
         self.session = DBSession()
         self.company = self.session.query(Company).filter_by(prefix='CZ').first()
         self.api_url = 'http://b2c.csair.com/portal/flight/direct/query'
-        self.headers = {
-            'Host': 'b2c.csair.com',
-            'Accept': 'application/json,text/javascript,*/*;q=0.01',
-            'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
-            'Accept-Encoding': 'gzip, deflate',
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Referer': 'https://www.csair.com/cn/index.shtml',
-            'Connection': 'keep-alive',
-        }
 
     def start_requests(self):
         segments = self.session.query(Segment).filter_by(is_available=True).all()
@@ -146,27 +136,36 @@ class CzSpider(scrapy.Spider):
                 data = {
                     'action': '0',
                     'adultNum': '1',
-                    'airLine': '1',  #
+                    'airLine': '1',
                     'arrCity': arv_city,
                     'cabinOrder': '0',
-                    'cache': '0',  #
+                    'cache': '0',
                     'childNum': '0',
                     'depCity': dep_city,
                     'flightDate': date_str,
-                    'flyType': '0',  #
+                    'flyType': '0',
                     'infantNum': '0',
                     'international': '0',
                     'isMember': '',
                     'preUrl': '',
                     'segType': '1',
                 }
-                yield scrapy.FormRequest(self.api_url, callback=self.parse, dont_filter=True,
-                                         headers=self.headers, body=json.dumps(data),
+                yield scrapy.FormRequest(self.api_url,
+                                         callback=self.parse,
+                                         method='POST',
+                                         dont_filter=True,
+                                         headers={
+                                             'Host': 'b2c.csair.com',
+                                             'Content-Type': 'application/json',
+                                             'X-Requested-With': 'XMLHttpRequest',
+                                             'Referer': 'http://www.csair.com/cn/index.shtml',
+                                         },
+                                         body=json.dumps(data),
                                          meta=
                                          {
                                              'dep_airport_id': segment.dep_airport.id,
                                              'arv_airport_id': segment.arv_airport.id,
-                                             'dep_date': date_str
+                                             'dep_date': date_str,
                                          }
                                          )
 
@@ -177,6 +176,7 @@ class CzSpider(scrapy.Spider):
         dep_date = response.request.meta.get('dep_date')
         if not data.get('success'):
             self.logger.debug('When crawling %s-%s on %s got some errors' % (dep_airport_id, arv_airport_id, dep_date))
+            self.logger.debug('The error is %s' % data.get('errorMsg'))
             return None
         airplane_type_list = data.get('data').get('planes')
         l_flt = data.get('data').get('segment')[0].get('dateFlight').get('flight')
