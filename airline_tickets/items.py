@@ -29,3 +29,11 @@ class TicketItem(Item):
     discount = Field()
     price = Field()
     create_date = Field()
+
+
+class PriceRoomItem(Item):
+    checkindate = Field()
+    city = Field()
+    price_range = Field()
+    left_rooms = Field()
+    create_date = Field()
