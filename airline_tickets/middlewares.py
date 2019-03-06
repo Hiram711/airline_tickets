@@ -186,10 +186,38 @@ class SeleniumMiddleware:
 
         finally:
 
-            browser.close()
+            browser.quit()
 
     @classmethod
     def from_crawler(cls, crawler):
 
         return cls(timeout=crawler.settings.get('SELENIUM_TIMEOUT'),
                    executable_path=crawler.settings.get('SELENIUM_EXECUTABLE_PATH'))
+
+
+class CookiesMiddleware:
+    def __init__(self, cookies_url):
+        self.logger = getLogger(__name__)
+        self.cookies_url = cookies_url
+
+    def get_random_cookies(self):
+        try:
+            response = requests.get(self.cookies_url)
+            if response.status_code == 200:
+                cookies = response.json()
+                return cookies
+        except requests.ConnectionError:
+            return False
+
+    def process_request(self, request, spider):
+        self.logger.debug('Getting Cookies')
+        cookies = self.get_random_cookies()
+        if cookies:
+            request.cookies = cookies
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        settings = crawler.settings
+        return cls(
+            cookies_url=settings.get('COOKIES_URL')
+        )
