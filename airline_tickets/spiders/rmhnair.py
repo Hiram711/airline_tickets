@@ -3,6 +3,7 @@ import js2py
 import json
 from datetime import datetime, timedelta
 from airline_tickets.models import DBSession, Segment, Company
+from airline_tickets.items import LowestPriceItem
 
 
 class RmHnairSpider(scrapy.Spider):
@@ -52,7 +53,15 @@ class RmHnairSpider(scrapy.Spider):
                                            'arv_airport_id': segment.arv_airport.id, })
 
     def parse(self, response):
+        now = datetime.now().strftime('%Y%m%d%H%M%S')
         receive_data = js2py.eval_js('var data=%s;var data1=JSON.stringify(data);data1' % response.text)
         json_data = json.loads(receive_data)
-        for i in json_data['Tables'][1].get('Rows'):
-            print(i)
+        for row in json_data['Tables'][1].get('Rows'):
+            item = LowestPriceItem()
+            for k, v in row.items():
+                if k == 'NVL(RPT.WIDTH_TYPE,0)':
+                    item['WIDTH_TYPE'] = v
+                else:
+                    item[k] = v
+            item['create_date'] = now
+            yield item
