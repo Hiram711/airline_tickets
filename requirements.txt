@@ -10,6 +10,7 @@ chardet==3.0.4
 constantly==15.1.0
 cryptography==2.5
 cssselect==1.0.3
+cx-Oracle==6.0.2
 html5lib==1.0.1
 hyperlink==18.0.0
 idna==2.8
@@ -26,6 +27,7 @@ pyee==5.0.0
 PyHamcrest==1.9.0
 pyjsparser==2.5.2
 pymongo==3.7.2
+PyMySQL==0.9.3
 pyOpenSSL==19.0.0
 pypiwin32==223
 pyppeteer==0.0.25

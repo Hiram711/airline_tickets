@@ -26,7 +26,7 @@ class MuSpider(scrapy.Spider):
 
     custom_settings = {
         # 'ITEM_PIPELINES': {
-        #     'airline_tickets.pipelines.SqlAlchemyPipeline': 300,
+        #     'airline_tickets.pipelines.ArilineTicketSqlAlchemyPipeline': 300,
         #     'airline_tickets.pipelines.MongoPipeline': 301
         # },
     }

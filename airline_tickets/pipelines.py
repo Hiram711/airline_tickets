@@ -7,7 +7,7 @@
 
 from datetime import datetime
 
-from airline_tickets.models import DBSession, PriceInfo
+from airline_tickets.models import DBSession, PriceInfo, RmHnairLowestPrice
 from pymongo import MongoClient
 
 
@@ -15,6 +15,36 @@ class SqlAlchemyPipeline:
 
     def open_spider(self, spider):
         self.session = DBSession()
+
+    def process_item(self, item, spider):
+        pass  # need to be override
+
+    def close_spider(self, spider):
+        self.session.close()
+
+
+class MongoPipeline:
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(mongo_uri=crawler.settings.get('MONGO_URI'), mongo_db=crawler.settings.get('MONGO_DB'))
+
+    def __init__(self, mongo_uri, mongo_db):
+        self.mongo_uri = mongo_uri
+        self.mongo_db = mongo_db
+
+    def open_spider(self, spider):
+        self.conn = MongoClient(self.mongo_uri)
+        self.db = self.conn[self.mongo_db]
+
+    def close_spider(self, spider):
+        self.conn.close()
+
+    def process_item(self, item, spider):
+        self.db[item.collection].insert(dict(item))
+        return item
+
+
+class ArilineTicketSqlAlchemyPipeline(SqlAlchemyPipeline):
 
     def process_item(self, item, spider):
         item = dict(item)  # by this way we can avoid the error that some items don't have some specific keys
@@ -42,26 +72,13 @@ class SqlAlchemyPipeline:
 
         return item
 
-    def close_spider(self, spider):
-        self.session.close()
 
-
-class MongoPipeline:
-    @classmethod
-    def from_crawler(cls, crawler):
-        return cls(mongo_uri=crawler.settings.get('MONGO_URI'), mongo_db=crawler.settings.get('MONGO_DB'))
-
-    def __init__(self, mongo_uri, mongo_db):
-        self.mongo_uri = mongo_uri
-        self.mongo_db = mongo_db
-
-    def open_spider(self, spider):
-        self.conn = MongoClient(self.mongo_uri)
-        self.db = self.conn[self.mongo_db]
-
-    def close_spider(self, spider):
-        self.conn.close()
+class RmHnairSqlAlchemyPipeline(SqlAlchemyPipeline):
 
     def process_item(self, item, spider):
-        self.db[item.collection].insert(dict(item))
+        item = dict(item)
+        p = RmHnairLowestPrice(**item)
+        self.session.add(p)
+        self.session.commit()
+
         return item

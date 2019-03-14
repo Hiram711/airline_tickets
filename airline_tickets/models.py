@@ -111,6 +111,40 @@ class Option(Base):
         session.close()
 
 
+class RmHnairLowestPrice(Base):
+    __tablename__ = 'rmhnair_lowest_price'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    ALARM_CLS = Column(String(40))
+    BOOKED = Column(String(40))
+    BOOKED_RATE = Column(String(40))
+    CLS_TYPE_CLASS = Column(String(40))
+    CLS_TYPE_CODES = Column(String(40))
+    CLS_TYPE_PRICES = Column(String(40))
+    DEP_TIME = Column(String(40))
+    DIFF_LF = Column(String(40))
+    EX_TIME_AV = Column(String(40))
+    EX_TIME_RBL = Column(String(40))
+    FLIGHT_DATE = Column(String(40))
+    FLIGHT_DATE_TRUE = Column(String(40))
+    FLIGHT_NO = Column(String(40))
+    FY_BOOKED = Column(String(40))
+    FY_MAX_OPEN = Column(String(40))
+    INCREMENTS = Column(String(40))
+    LOWEST_PRICE = Column(String(40))
+    LOWEST_STATUS = Column(String(40))
+    MAX_OPEN = Column(String(40))
+    NONSTOP = Column(String(40))
+    WIDTH_TYPE = Column(String(40))
+    OPEN_CLS = Column(String(40))
+    PLANE_TYPE = Column(String(40))
+    SEGMENT_CN = Column(String(40))
+    SEGMENT_EN = Column(String(40))
+    STATUS = Column(String(40))
+    STATUS_SET = Column(String(40))
+    TOMORROW_LF = Column(String(40))
+    create_date = Column(String(40))
+
+
 engine = create_engine(META_DB_URI)
 DBSession = sessionmaker(bind=engine)
 

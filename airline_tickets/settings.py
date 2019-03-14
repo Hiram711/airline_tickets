@@ -112,7 +112,7 @@ ROBOTSTXT_OBEY = False
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'airline_tickets.pipelines.SqlAlchemyPipeline': 300,
+    'airline_tickets.pipelines.ArilineTicketSqlAlchemyPipeline': 300,
     # 'airline_tickets.pipelines.MongoPipeline': 301  # this pipeline is for MongoDB
 }
 

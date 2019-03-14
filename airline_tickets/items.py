@@ -39,7 +39,7 @@ class PriceRoomItem(Item):
     create_date = Field()
 
 
-class LowestPriceItem(Item):
+class RmHnairLowestPriceItem(Item):
     ALARM_CLS = Field()
     BOOKED = Field()
     BOOKED_RATE = Field()

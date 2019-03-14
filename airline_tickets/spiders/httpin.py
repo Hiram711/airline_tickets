@@ -16,6 +16,10 @@ function main(splash, args)
  --       type = 'http'
  --   }
  --   end)
+  splash:set_custom_headers({
+   ["Header-1"] = "Value 1",
+   ["Header-2"] = "Value 2",
+})
   splash:go(args.url)
   splash:wait(args.wait)
   return splash:html()

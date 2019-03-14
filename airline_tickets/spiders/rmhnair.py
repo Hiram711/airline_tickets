@@ -2,14 +2,16 @@ import scrapy
 import js2py
 import json
 from datetime import datetime, timedelta
-from airline_tickets.models import DBSession, Segment, Company
-from airline_tickets.items import LowestPriceItem
+from airline_tickets.models import DBSession, Segment, Option
+from airline_tickets.items import RmHnairLowestPriceItem
 
 
 class RmHnairSpider(scrapy.Spider):
     name = 'rmhnair'
     custom_settings = {
-        'COOKIES_URL': 'http://127.0.0.1:5000/rmhnair/random',
+        'RMHNAIR_ADD_DAYS': 7,
+        'RMHNAIR_ADD_TIMES': 4,
+        'COOKIES_URL': 'http://10.42.11.226:5020/rmhnair/random',
         'SPIDER_MIDDLEWARES': {},  # disable splash
         'DOWNLOADER_MIDDLEWARES':
             {
@@ -17,15 +19,12 @@ class RmHnairSpider(scrapy.Spider):
             },
         'DUPEFILTER_CLASS': 'scrapy.dupefilters.RFPDupeFilter',  # disable splash and using default setting
         'HTTPCACHE_STORAGE': 'scrapy.extensions.httpcache.FilesystemCacheStorage',
-        'ITEM_PIPELINES': {},  # todo write the pipline for this spider
+        'ITEM_PIPELINES': {'airline_tickets.pipelines.RmHnairSqlAlchemyPipeline': 300, },
     }
 
     def __init__(self):
         super(RmHnairSpider, self).__init__()
         self.session = DBSession()
-        self.company = self.session.query(Company).filter_by(prefix='9C').first()
-        self.date_add = 7
-        self.date_add_times = 4
         self.url = 'http://rm.hnair.com/ajax/Yeesky.EIM.Site.BI.ClassTune.AjaxClass.FlightTuneAjax,Yeesky.EIM.Site.BI.ClassTune.ashx?_method=CollectData&_session=r'
         self.data_str = 'flightStaDate={}\r\nflightEndDate={}\r\nflightTime1=00:00\r\nflightTime2=23:59\r\nsegment={}'
         self.headers = {'Host': 'rm.hnair.com',
@@ -39,14 +38,16 @@ class RmHnairSpider(scrapy.Spider):
                         }
 
     def start_requests(self):
+        date_add = self.settings.get('RMHNAIR_ADD_DAYS') or 7
+        date_add_times = self.settings.get('RMHNAIR_ADD_TIMES') or 4
         segments = self.session.query(Segment).filter_by(is_available=True).all()
         now = datetime.now()
         for segment in segments:
-            for i in range(0, self.date_add_times):
+            for i in range(0, date_add_times):
                 dep_city = segment.dep_airport.code.upper()
                 arv_city = segment.arv_airport.code.upper()
-                begin_date_str = (now + timedelta(days=i * self.date_add)).strftime('%Y-%m-%d')
-                end_date_str = (now + timedelta(days=((i + 1) * self.date_add - 1))).strftime('%Y-%m-%d')
+                begin_date_str = (now + timedelta(days=i * date_add)).strftime('%Y-%m-%d')
+                end_date_str = (now + timedelta(days=((i + 1) * date_add - 1))).strftime('%Y-%m-%d')
                 data = self.data_str.format(begin_date_str, end_date_str, dep_city + arv_city)
                 yield scrapy.Request(self.url, callback=self.parse, method='POST', headers=self.headers, body=data,
                                      meta={'dep_airport_id': segment.dep_airport.id,
@@ -57,7 +58,7 @@ class RmHnairSpider(scrapy.Spider):
         receive_data = js2py.eval_js('var data=%s;var data1=JSON.stringify(data);data1' % response.text)
         json_data = json.loads(receive_data)
         for row in json_data['Tables'][1].get('Rows'):
-            item = LowestPriceItem()
+            item = RmHnairLowestPriceItem()
             for k, v in row.items():
                 if k == 'NVL(RPT.WIDTH_TYPE,0)':
                     item['WIDTH_TYPE'] = v

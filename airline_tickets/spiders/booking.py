@@ -9,6 +9,11 @@ script = """
 function main(splash, args)
   splash.images_enabled = false
   splash:set_user_agent(args.user_agent)
+  splash:set_custom_headers({
+   ["Host"] = "www.booking.com",
+   ["Accept-Language"] = "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+   ["Cookie"] = "lastSeen=0",
+   })
   splash:go(args.url)
   splash:wait(args.wait)
   return splash:html()
@@ -21,7 +26,7 @@ class BookingSpider(scrapy.Spider):
 
     # use splash to crawl without proxy
     custom_settings = {
-        'USE_PROXY_DEFAULT': True,
+        'USE_PROXY_DEFAULT': False,
         'ITEM_PIPELINES': {},  # todo write the pipline for hotel rooms counts in different price ranges
     }
 
