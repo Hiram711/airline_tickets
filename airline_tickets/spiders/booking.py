@@ -1,5 +1,5 @@
 import scrapy
-from airline_tickets.models import DBSession
+from models import DBSession
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from scrapy_splash.request import SplashRequest

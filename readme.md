@@ -47,8 +47,7 @@ pip install -r requirements.txt
 ```
 * Create database and tables
 ```bash
-cd ..
-python airline_tickets/models.py
+python models.py
 ```
 * Run
 ```bash

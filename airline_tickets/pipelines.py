@@ -7,7 +7,7 @@
 
 from datetime import datetime
 
-from airline_tickets.models import DBSession, PriceInfo, RmHnairLowestPrice
+from models import DBSession, PriceInfo, RmHnairLowestPrice
 from pymongo import MongoClient
 
 

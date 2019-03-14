@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker, relationship, backref
 from sqlalchemy import create_engine
 from datetime import datetime
 from airline_tickets.settings import META_DB_URI
+from sqlalchemy import Sequence
 
 Base = declarative_base()
 
@@ -22,7 +23,8 @@ class Segment(Base):
 
 class Airport(Base):
     __tablename__ = "airports"
-    id = Column(Integer, autoincrement=True, primary_key=True)
+    # id = Column(Integer, autoincrement=True, primary_key=True)  # for mysql and sqllite
+    id = Column(Integer, Sequence('airport_id_seq'), primary_key=True)  # for oracle
     code = Column(String(3), unique=True, nullable=False)
     name = Column(String(32), unique=True, nullable=False)
     city = Column(String(32))
@@ -42,7 +44,8 @@ class Airport(Base):
 
 class PriceInfo(Base):
     __tablename__ = 'price_info'
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    # id = Column(Integer, autoincrement=True, primary_key=True)  # for mysql and sqllite
+    id = Column(Integer, Sequence('priceinfo_id_seq'), primary_key=True)  # for oracle
     company_id = Column(Integer, ForeignKey('companies.id'), nullable=False)
     dep_airport_id = Column(Integer, ForeignKey('airports.id'), nullable=False)
     arv_airport_id = Column(Integer, ForeignKey('airports.id'), nullable=False)
@@ -66,7 +69,8 @@ class PriceInfo(Base):
 
 class Company(Base):
     __tablename__ = 'companies'
-    id = Column(Integer, primary_key=True)
+    # id = Column(Integer, autoincrement=True, primary_key=True)  # for mysql and sqllite
+    id = Column(Integer, Sequence('company_id_seq'), primary_key=True)  # for oracle
     company_name = Column(String(40), index=True, unique=True)
     prefix = Column(String(10), index=True, unique=True)
     create_time = Column(DateTime, default=datetime.now)
@@ -97,7 +101,8 @@ class Company(Base):
 
 class Option(Base):
     __tablename__ = 'options'
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    # id = Column(Integer, autoincrement=True, primary_key=True)  # for mysql and sqllite
+    id = Column(Integer, Sequence('option_id_seq'), primary_key=True)  # for oracle
     name = Column(String(40), unique=True)
     value = Column(Integer)
 
@@ -113,7 +118,8 @@ class Option(Base):
 
 class RmHnairLowestPrice(Base):
     __tablename__ = 'rmhnair_lowest_price'
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    # id = Column(Integer, autoincrement=True, primary_key=True)  # for mysql and sqllite
+    id = Column(Integer, Sequence('rmhnaPrice_id_seq'), primary_key=True)  # for oracle
     ALARM_CLS = Column(String(40))
     BOOKED = Column(String(40))
     BOOKED_RATE = Column(String(40))

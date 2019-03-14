@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import json
-from airline_tickets.models import DBSession, Segment, Option, Company
+from models import DBSession, Segment, Option, Company
 from datetime import datetime, timedelta
-from airline_tickets.items import TicketItem
+from ..items import TicketItem
 
 
 def get_price_type1(name):

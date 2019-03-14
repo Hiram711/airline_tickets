@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import scrapy
-from airline_tickets.models import DBSession, Segment, Option, Company
+from models import DBSession, Segment, Option, Company
 from datetime import datetime, timedelta
-from airline_tickets.items import TicketItem
+from ..items import TicketItem
 from bs4 import BeautifulSoup
 from scrapy_splash.request import SplashRequest
 

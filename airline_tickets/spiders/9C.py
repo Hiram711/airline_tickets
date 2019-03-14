@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import scrapy
-from airline_tickets.models import DBSession, Segment, Option, Company, Airport
+from models import DBSession, Segment, Option, Company, Airport
 from datetime import datetime, timedelta
-from airline_tickets.items import TicketItem
+from ..items import TicketItem
 import json
 
 

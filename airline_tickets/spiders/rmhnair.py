@@ -2,8 +2,8 @@ import scrapy
 import js2py
 import json
 from datetime import datetime, timedelta
-from airline_tickets.models import DBSession, Segment, Option
-from airline_tickets.items import RmHnairLowestPriceItem
+from models import DBSession, Segment
+from ..items import RmHnairLowestPriceItem
 
 
 class RmHnairSpider(scrapy.Spider):
