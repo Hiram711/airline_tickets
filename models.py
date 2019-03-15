@@ -10,9 +10,9 @@ Base = declarative_base()
 
 
 class Segment(Base):
-    __tablename__ = 'segments'
-    dep_airport_id = Column(Integer, ForeignKey('airports.id'), primary_key=True)
-    arv_airport_id = Column(Integer, ForeignKey('airports.id'), primary_key=True)
+    __tablename__ = 't_crl_segments'
+    dep_airport_id = Column(Integer, ForeignKey('t_crl_airports.id'), primary_key=True)
+    arv_airport_id = Column(Integer, ForeignKey('t_crl_airports.id'), primary_key=True)
     create_date = Column(DateTime, default=datetime.now)
     modify_date = Column(DateTime, default=datetime.now)
     is_available = Column(Boolean, default=True)
@@ -22,7 +22,7 @@ class Segment(Base):
 
 
 class Airport(Base):
-    __tablename__ = "airports"
+    __tablename__ = "t_crl_airports"
     # id = Column(Integer, autoincrement=True, primary_key=True)  # for mysql and sqllite
     id = Column(Integer, Sequence('airport_id_seq'), primary_key=True)  # for oracle
     code = Column(String(3), unique=True, nullable=False)
@@ -43,12 +43,12 @@ class Airport(Base):
 
 
 class PriceInfo(Base):
-    __tablename__ = 'price_info'
+    __tablename__ = 't_crl_price_info'
     # id = Column(Integer, autoincrement=True, primary_key=True)  # for mysql and sqllite
     id = Column(Integer, Sequence('priceinfo_id_seq'), primary_key=True)  # for oracle
-    company_id = Column(Integer, ForeignKey('companies.id'), nullable=False)
-    dep_airport_id = Column(Integer, ForeignKey('airports.id'), nullable=False)
-    arv_airport_id = Column(Integer, ForeignKey('airports.id'), nullable=False)
+    company_id = Column(Integer, ForeignKey('t_crl_companies.id'), nullable=False)
+    dep_airport_id = Column(Integer, ForeignKey('t_crl_airports.id'), nullable=False)
+    arv_airport_id = Column(Integer, ForeignKey('t_crl_airports.id'), nullable=False)
     dep_date = Column(Date)
     flt_no = Column(String(16))
     airplane_type = Column(String(16))
@@ -68,7 +68,7 @@ class PriceInfo(Base):
 
 
 class Company(Base):
-    __tablename__ = 'companies'
+    __tablename__ = 't_crl_companies'
     # id = Column(Integer, autoincrement=True, primary_key=True)  # for mysql and sqllite
     id = Column(Integer, Sequence('company_id_seq'), primary_key=True)  # for oracle
     company_name = Column(String(40), index=True, unique=True)
@@ -100,7 +100,7 @@ class Company(Base):
 
 
 class Option(Base):
-    __tablename__ = 'options'
+    __tablename__ = 't_crl_options'
     # id = Column(Integer, autoincrement=True, primary_key=True)  # for mysql and sqllite
     id = Column(Integer, Sequence('option_id_seq'), primary_key=True)  # for oracle
     name = Column(String(40), unique=True)
@@ -117,9 +117,9 @@ class Option(Base):
 
 
 class RmHnairLowestPrice(Base):
-    __tablename__ = 'rmhnair_lowest_price'
+    __tablename__ = 't_crl_rmhnair_lowest_price'
     # id = Column(Integer, autoincrement=True, primary_key=True)  # for mysql and sqllite
-    id = Column(Integer, Sequence('rmhnaPrice_id_seq'), primary_key=True)  # for oracle
+    id = Column(Integer, Sequence('rmhna_price_id_seq'), primary_key=True)  # for oracle
     ALARM_CLS = Column(String(40))
     BOOKED = Column(String(40))
     BOOKED_RATE = Column(String(40))
