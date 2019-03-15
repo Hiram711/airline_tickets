@@ -63,7 +63,7 @@ class PriceInfo(Base):
     price_type1 = Column(String(32))
     price_type2 = Column(String(32))
     discount = Column(String(16))
-    price = Column(Numeric(5, 2))
+    price = Column(Numeric(10, 2))
     create_date = Column(DateTime, nullable=False)
 
 
@@ -141,7 +141,7 @@ class RmHnairLowestPrice(Base):
     MAX_OPEN = Column(String(40))
     NONSTOP = Column(String(40))
     WIDTH_TYPE = Column(String(40))
-    OPEN_CLS = Column(String(40))
+    OPEN_CLS = Column(String(80))
     PLANE_TYPE = Column(String(40))
     SEGMENT_CN = Column(String(40))
     SEGMENT_EN = Column(String(40))
